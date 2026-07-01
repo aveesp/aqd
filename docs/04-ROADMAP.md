@@ -17,7 +17,8 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 | 8 | Admin Panel (includes matchmaking-staff console — replaces former "Agent Portal" phase) | Scaffolded module (`admin`), UI pending. RBAC roles (`support_staff`, `matchmaking_staff`, `admin`, `super_admin`) defined in `Role` enum; unified `/admin/login` endpoint not yet built (currently one shared `/auth/login`) |
 | ~~9~~ | ~~Agent Portal~~ | **Removed from scope** |
 | 8.5 | Search module: filtered profile search | ✅ Done — `backend/src/search`, `GET /search/profiles` with gender/age/height/marital-status/sect/maslak/education/location/verified-only filters, pagination, self-exclusion, and the same privacy redaction as `GET /profiles/:id`. Uses standard Mongoose queries against indexed fields rather than MongoDB Atlas Search (Atlas Search is an Atlas-only Lucene feature unavailable on local `mongod`/self-hosted deployments — worth revisiting for full-text relevance ranking once the project is deployed on Atlas) |
-| 9 | Matchmaking module (staff-curated suggestions, client-facing view) | Scaffolded module (`matches`), logic pending |
+| 8.6 | User-driven interactions: express interest, favorites, shortlist, block | ✅ Done — `backend/src/matches` (`Interest`/`Favorite`/`Shortlist`/`Block` schemas, `/matches/*` routes). Express-interest requires mutual non-blocking and rejects self-targeting/duplicate/nonexistent-user requests; accept/decline is recipient-only and one-shot; block is symmetric-checked (either party having blocked the other stops new interests). Verified end-to-end including the 403/404/409/400 edge cases. **Report** (SRS FR-18's "Report" action) is deliberately deferred — it implies an admin moderation queue, which belongs with the Admin Panel phase, not this module |
+| 9 | Matchmaking module (staff-curated match suggestions, `assignedStaffId` workflow) | Not started. This is distinct from 8.6 above — it's the paid, staff-fulfilled matchmaking service (SRS §3.5), where `matchmaking_staff` suggests profiles to a client from the Admin Panel. Depends on the Admin Panel (phase 8) existing first |
 | 10 | Real-time chat module | Scaffolded module (`chat`), Socket.IO gateway pending |
 | 11 | Payment module (Razorpay, invoices) | Scaffolded module (`payments`), integration pending |
 | 12 | WhatsApp integration | Scaffolded module (`notifications`), provider wiring pending |
@@ -38,4 +39,6 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 7. ~~Add profile visibility rules to `GET /profiles/:id`~~ ✅ Done (staff assignment, privacy settings, and precise geolocation redacted for non-owner/non-staff viewers).
 8. Photo upload (S3) and verification document upload for profiles — will extend the visibility-redaction logic once photos exist.
 9. ~~Implement `search` module~~ ✅ Done (standard Mongoose filtering; see 8.5 above for the Atlas Search caveat).
-10. Implement `matches` module (favorites/shortlists/interests/express-interest workflow) — the natural next step once users can find each other via search.
+10. ~~Implement user-driven interactions (interests/favorites/shortlist/block)~~ ✅ Done (see 8.6 above).
+11. Real-time chat module — natural next step now that Interest-acceptance is the gate a chat feature would check before allowing messaging.
+12. Admin Panel (dedicated `/admin/login`, user/profile moderation, CMS) — needed before the staff-curated matchmaking module (phase 9) can be built.
