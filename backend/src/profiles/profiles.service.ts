@@ -98,10 +98,9 @@ export class ProfilesService {
   // and `hidePhotos` don't have dedicated fields to redact yet (contact info
   // and photo galleries aren't modeled on Profile yet), so this only covers
   // what's actually sensitive today: staff assignment, the target's own
-  // privacy settings, and precise geolocation.
-  private redactForOtherUsers(
-    profile: ProfileDocument,
-  ): Record<string, unknown> {
+  // privacy settings, and precise geolocation. Public so other modules
+  // (e.g. search) can apply the same redaction to list results.
+  redactForOtherUsers(profile: ProfileDocument): Record<string, unknown> {
     const plain = profile.toObject();
     const { assignedStaffId, privacy, ...rest } = plain;
     void assignedStaffId;

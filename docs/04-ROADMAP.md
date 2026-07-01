@@ -16,6 +16,7 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 | 7.7 | Profile visibility rules on `GET /profiles/:id` | ✅ Done — owner and admin-panel staff (`support_staff`/`matchmaking_staff`/`admin`/`super_admin`) get the full document; other viewers get `assignedStaffId`, `privacy`, and `location.geo` stripped. Verified with a two-user + one-staff end-to-end test. `hideContact`/`hidePhotos` toggles have no dedicated fields to enforce yet (no contact/photo data modeled on `Profile`) — revisit once those land |
 | 8 | Admin Panel (includes matchmaking-staff console — replaces former "Agent Portal" phase) | Scaffolded module (`admin`), UI pending. RBAC roles (`support_staff`, `matchmaking_staff`, `admin`, `super_admin`) defined in `Role` enum; unified `/admin/login` endpoint not yet built (currently one shared `/auth/login`) |
 | ~~9~~ | ~~Agent Portal~~ | **Removed from scope** |
+| 8.5 | Search module: filtered profile search | ✅ Done — `backend/src/search`, `GET /search/profiles` with gender/age/height/marital-status/sect/maslak/education/location/verified-only filters, pagination, self-exclusion, and the same privacy redaction as `GET /profiles/:id`. Uses standard Mongoose queries against indexed fields rather than MongoDB Atlas Search (Atlas Search is an Atlas-only Lucene feature unavailable on local `mongod`/self-hosted deployments — worth revisiting for full-text relevance ranking once the project is deployed on Atlas) |
 | 9 | Matchmaking module (staff-curated suggestions, client-facing view) | Scaffolded module (`matches`), logic pending |
 | 10 | Real-time chat module | Scaffolded module (`chat`), Socket.IO gateway pending |
 | 11 | Payment module (Razorpay, invoices) | Scaffolded module (`payments`), integration pending |
@@ -36,4 +37,5 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 6. ~~Implement the `profiles` module~~ ✅ Done.
 7. ~~Add profile visibility rules to `GET /profiles/:id`~~ ✅ Done (staff assignment, privacy settings, and precise geolocation redacted for non-owner/non-staff viewers).
 8. Photo upload (S3) and verification document upload for profiles — will extend the visibility-redaction logic once photos exist.
-9. Implement `search` module (Atlas Search index + filters) — the next real dependency once profiles have enough data to search over.
+9. ~~Implement `search` module~~ ✅ Done (standard Mongoose filtering; see 8.5 above for the Atlas Search caveat).
+10. Implement `matches` module (favorites/shortlists/interests/express-interest workflow) — the natural next step once users can find each other via search.

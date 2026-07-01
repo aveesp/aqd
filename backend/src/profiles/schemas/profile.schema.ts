@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type ProfileDocument = HydratedDocument<Profile>;
 
@@ -195,7 +195,7 @@ export class Privacy {
 const PrivacySchema = SchemaFactory.createForClass(Privacy);
 
 @Schema({ timestamps: true })
-export class Profile extends Document {
+export class Profile {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true })
   userId: Types.ObjectId;
 
@@ -242,3 +242,12 @@ export class Profile extends Document {
 
 export const ProfileSchema = SchemaFactory.createForClass(Profile);
 ProfileSchema.index({ 'location.geo': '2dsphere' });
+ProfileSchema.index({ 'personal.gender': 1, 'personal.dob': 1 });
+ProfileSchema.index({ 'religion.sect': 1, 'religion.maslak': 1 });
+ProfileSchema.index({
+  'location.country': 1,
+  'location.state': 1,
+  'location.city': 1,
+});
+ProfileSchema.index({ verificationStatus: 1 });
+ProfileSchema.index({ createdAt: -1 });
