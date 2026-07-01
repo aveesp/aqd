@@ -7,11 +7,12 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 | 1 | Software Requirement Specification | ✅ Done — [01-SRS.md](01-SRS.md) |
 | 2 | Product backlog, user stories, sprint plan | Pending |
 | 3 | High-level architecture, low-level design, ER overview | ✅ Done — [02-ARCHITECTURE.md](02-ARCHITECTURE.md), [03-DATABASE-DESIGN.md](03-DATABASE-DESIGN.md) |
-| 4 | MongoDB schemas, API spec, Swagger | Schemas drafted in 03; Swagger wiring pending in `backend` |
+| 4 | MongoDB schemas, API spec, Swagger | ✅ `User` schema implemented + connected; Swagger live at `/api/docs`. Remaining schemas (profiles, matches, etc.) still to implement |
 | 5 | UI wireframes, high-fidelity design, design system | Pending |
 | 6 | Angular frontend scaffold | ✅ Done — `frontend/` (Angular 20, standalone, Tailwind wired) |
 | 7 | NestJS backend scaffold | ✅ Done — `backend/` (all feature modules generated and wired, boots cleanly) |
-| 8 | Admin Panel (includes matchmaking-staff console — replaces former "Agent Portal" phase) | Scaffolded module (`admin`), UI pending |
+| 7.5 | Auth: register/login/JWT+refresh rotation/RBAC guards | ✅ Done — `backend/src/auth`, verified end-to-end against local MongoDB (register, duplicate-email rejection, login, protected route, refresh rotation, logout, privilege-escalation-via-DTO rejection) |
+| 8 | Admin Panel (includes matchmaking-staff console — replaces former "Agent Portal" phase) | Scaffolded module (`admin`), UI pending. RBAC roles (`support_staff`, `matchmaking_staff`, `admin`, `super_admin`) defined in `Role` enum; unified `/admin/login` endpoint not yet built (currently one shared `/auth/login`) |
 | ~~9~~ | ~~Agent Portal~~ | **Removed from scope** |
 | 9 | Matchmaking module (staff-curated suggestions, client-facing view) | Scaffolded module (`matches`), logic pending |
 | 10 | Real-time chat module | Scaffolded module (`chat`), Socket.IO gateway pending |
@@ -25,8 +26,9 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 | 18 | Admin documentation | Pending |
 
 ## Immediate Next Steps
-1. Wire MongoDB connection (`@nestjs/mongoose`) using schemas from [03-DATABASE-DESIGN.md](03-DATABASE-DESIGN.md).
-2. Implement `auth` module: registration, OTP/email verification, JWT + refresh rotation, and the single `/admin/login` for staff roles (`support_staff`, `matchmaking_staff`, `admin`, `super_admin`) — no agent auth guard.
-3. Add Swagger (`@nestjs/swagger`) bootstrap in `main.ts`.
+1. ~~Wire MongoDB connection~~ ✅ Done (`MongooseModule.forRootAsync`, `User` schema, local `mongod` for dev).
+2. ~~Implement core `auth` module~~ ✅ Done (register, login, JWT access+refresh with rotation, RolesGuard, CurrentUser decorator). Still missing: OTP/email verification step, 2FA, and a dedicated `/admin/login` endpoint separate from the general `/auth/login` (currently staff would log in through the same endpoint; the RBAC guard/role check exists but the SRS calls for a distinct admin-panel login route).
+3. ~~Add Swagger~~ ✅ Done — live at `/api/docs`.
 4. Build the Angular auth flow (`features/auth`) and route guards (`core/guards`), with a distinct `AdminAuthGuard` for `/admin/*` — no `AgentAuthGuard`.
-5. Stand up Docker Compose for local MongoDB + Redis so the backend can run against real dependencies instead of stubs.
+5. Stand up Docker Compose for local MongoDB + Redis so the backend doesn't depend on a manually-started local `mongod`.
+6. Implement the `profiles` module (schema + CRUD) next — it's the next dependency for search/matches/chat.

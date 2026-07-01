@@ -2,6 +2,9 @@
 /dist
 /node_modules
 
+# local dev database data
+/.mongo-data
+
 # env
 .env
 .env.*
