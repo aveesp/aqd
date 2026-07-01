@@ -182,19 +182,39 @@ export class MatchesService {
     }
   }
 
+  async areBlocked(userIdA: string, userIdB: string): Promise<boolean> {
+    const block = await this.blockModel
+      .findOne({
+        $or: [
+          { blockerUserId: userIdA, blockedUserId: userIdB },
+          { blockerUserId: userIdB, blockedUserId: userIdA },
+        ],
+      })
+      .exec();
+    return !!block;
+  }
+
+  async hasAcceptedInterest(
+    userIdA: string,
+    userIdB: string,
+  ): Promise<boolean> {
+    const interest = await this.interestModel
+      .findOne({
+        status: InterestStatus.Accepted,
+        $or: [
+          { fromUserId: userIdA, toUserId: userIdB },
+          { fromUserId: userIdB, toUserId: userIdA },
+        ],
+      })
+      .exec();
+    return !!interest;
+  }
+
   private async assertNotBlocked(
     userId: string,
     targetUserId: string,
   ): Promise<void> {
-    const block = await this.blockModel
-      .findOne({
-        $or: [
-          { blockerUserId: userId, blockedUserId: targetUserId },
-          { blockerUserId: targetUserId, blockedUserId: userId },
-        ],
-      })
-      .exec();
-    if (block) {
+    if (await this.areBlocked(userId, targetUserId)) {
       throw new ForbiddenException(
         'This action is not available between these users',
       );
