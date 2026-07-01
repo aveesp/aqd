@@ -25,7 +25,11 @@ export class User extends Document {
   @Prop({ type: String, enum: Role, default: Role.User })
   role: Role;
 
-  @Prop({ type: String, enum: UserStatus, default: UserStatus.PendingVerification })
+  @Prop({
+    type: String,
+    enum: UserStatus,
+    default: UserStatus.PendingVerification,
+  })
   status: UserStatus;
 
   @Prop({ type: Date, default: null })

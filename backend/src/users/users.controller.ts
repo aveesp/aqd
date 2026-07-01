@@ -12,6 +12,11 @@ export class UsersController {
   @Get('me')
   async me(@CurrentUser() user: JwtPayload) {
     const found = await this.usersService.findById(user.sub);
-    return { id: found.id, email: found.email, role: found.role, status: found.status };
+    return {
+      id: found.id,
+      email: found.email,
+      role: found.role,
+      status: found.status,
+    };
   }
 }

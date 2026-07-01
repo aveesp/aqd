@@ -24,7 +24,8 @@ import { AuditModule } from './audit/audit.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('MONGODB_URI') ?? 'mongodb://127.0.0.1:27017/aqd',
+        uri:
+          config.get<string>('MONGODB_URI') ?? 'mongodb://127.0.0.1:27017/aqd',
       }),
     }),
     AuthModule,

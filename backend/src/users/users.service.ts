@@ -6,13 +6,22 @@ import { Role } from '../auth/roles.enum';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+  ) {}
 
-  async create(data: { email: string; passwordHash: string; role?: Role }): Promise<UserDocument> {
+  async create(data: {
+    email: string;
+    passwordHash: string;
+    role?: Role;
+  }): Promise<UserDocument> {
     return this.userModel.create(data);
   }
 
-  async findByEmail(email: string, withSecrets = false): Promise<UserDocument | null> {
+  async findByEmail(
+    email: string,
+    withSecrets = false,
+  ): Promise<UserDocument | null> {
     const query = this.userModel.findOne({ email: email.toLowerCase() });
     if (withSecrets) {
       query.select('+passwordHash +refreshTokenHash');
@@ -28,18 +37,28 @@ export class UsersService {
     return user;
   }
 
-  async setRefreshTokenHash(userId: string, refreshTokenHash: string | null): Promise<void> {
-    await this.userModel.updateOne({ _id: userId }, { refreshTokenHash }).exec();
+  async setRefreshTokenHash(
+    userId: string,
+    refreshTokenHash: string | null,
+  ): Promise<void> {
+    await this.userModel
+      .updateOne({ _id: userId }, { refreshTokenHash })
+      .exec();
   }
 
   async markEmailVerified(userId: string): Promise<void> {
     await this.userModel
-      .updateOne({ _id: userId }, { emailVerifiedAt: new Date(), status: 'active' })
+      .updateOne(
+        { _id: userId },
+        { emailVerifiedAt: new Date(), status: 'active' },
+      )
       .exec();
   }
 
   async touchLastLogin(userId: string): Promise<void> {
-    await this.userModel.updateOne({ _id: userId }, { lastLoginAt: new Date() }).exec();
+    await this.userModel
+      .updateOne({ _id: userId }, { lastLoginAt: new Date() })
+      .exec();
   }
 
   async findByIdWithRefreshHash(userId: string): Promise<UserDocument | null> {
