@@ -13,6 +13,7 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 | 7 | NestJS backend scaffold | ✅ Done — `backend/` (all feature modules generated and wired, boots cleanly) |
 | 7.5 | Auth: register/login/JWT+refresh rotation/RBAC guards | ✅ Done — `backend/src/auth`, verified end-to-end against local MongoDB (register, duplicate-email rejection, login, protected route, refresh rotation, logout, privilege-escalation-via-DTO rejection) |
 | 7.6 | Profile module: schema + CRUD | ✅ Done — `backend/src/profiles` (create/get/update own profile, privacy settings, completeness scoring). Verified end-to-end including partial-update section merging (a known pitfall where class-transformer's `undefined` own-properties on nested DTOs were silently wiping sibling fields on PATCH — fixed and regression-tested) |
+| 7.7 | Profile visibility rules on `GET /profiles/:id` | ✅ Done — owner and admin-panel staff (`support_staff`/`matchmaking_staff`/`admin`/`super_admin`) get the full document; other viewers get `assignedStaffId`, `privacy`, and `location.geo` stripped. Verified with a two-user + one-staff end-to-end test. `hideContact`/`hidePhotos` toggles have no dedicated fields to enforce yet (no contact/photo data modeled on `Profile`) — revisit once those land |
 | 8 | Admin Panel (includes matchmaking-staff console — replaces former "Agent Portal" phase) | Scaffolded module (`admin`), UI pending. RBAC roles (`support_staff`, `matchmaking_staff`, `admin`, `super_admin`) defined in `Role` enum; unified `/admin/login` endpoint not yet built (currently one shared `/auth/login`) |
 | ~~9~~ | ~~Agent Portal~~ | **Removed from scope** |
 | 9 | Matchmaking module (staff-curated suggestions, client-facing view) | Scaffolded module (`matches`), logic pending |
@@ -33,6 +34,6 @@ Agent login/portal has been removed from scope entirely (see [01-SRS.md](01-SRS.
 4. Build the Angular auth flow (`features/auth`) and route guards (`core/guards`), with a distinct `AdminAuthGuard` for `/admin/*` — no `AgentAuthGuard`.
 5. Stand up Docker Compose for local MongoDB + Redis so the backend doesn't depend on a manually-started local `mongod`.
 6. ~~Implement the `profiles` module~~ ✅ Done.
-7. Add profile visibility rules to `GET /profiles/:id` (currently requires auth but doesn't yet respect `privacy.hideContact`/`hidePhotos`, and isn't gated by mutual-interest/connection state).
-8. Photo upload (S3) and verification document upload for profiles.
+7. ~~Add profile visibility rules to `GET /profiles/:id`~~ ✅ Done (staff assignment, privacy settings, and precise geolocation redacted for non-owner/non-staff viewers).
+8. Photo upload (S3) and verification document upload for profiles — will extend the visibility-redaction logic once photos exist.
 9. Implement `search` module (Atlas Search index + filters) — the next real dependency once profiles have enough data to search over.

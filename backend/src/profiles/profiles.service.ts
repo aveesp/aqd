@@ -9,6 +9,12 @@ import { Profile, ProfileDocument } from './schemas/profile.schema';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdatePrivacyDto } from './dto/update-privacy.dto';
+import { Role, ADMIN_PANEL_ROLES } from '../auth/roles.enum';
+
+export interface ProfileViewer {
+  userId: string;
+  role: Role;
+}
 
 const COMPLETENESS_SECTIONS: (keyof Profile)[] = [
   'personal',
@@ -72,6 +78,41 @@ export class ProfilesService {
       throw new NotFoundException('Profile not found');
     }
     return profile;
+  }
+
+  async findByIdForViewer(
+    id: string,
+    viewer: ProfileViewer,
+  ): Promise<Record<string, unknown>> {
+    const profile = await this.findById(id);
+    const isOwner = profile.userId.toString() === viewer.userId;
+    const isStaff = ADMIN_PANEL_ROLES.includes(viewer.role);
+    if (isOwner || isStaff) {
+      return profile.toObject() as unknown as Record<string, unknown>;
+    }
+    return this.redactForOtherUsers(profile);
+  }
+
+  // Owner and admin-panel staff see the full document; every other viewer
+  // gets internal fields stripped and privacy toggles enforced. `hideContact`
+  // and `hidePhotos` don't have dedicated fields to redact yet (contact info
+  // and photo galleries aren't modeled on Profile yet), so this only covers
+  // what's actually sensitive today: staff assignment, the target's own
+  // privacy settings, and precise geolocation.
+  private redactForOtherUsers(
+    profile: ProfileDocument,
+  ): Record<string, unknown> {
+    const plain = profile.toObject();
+    const { assignedStaffId, privacy, ...rest } = plain;
+    void assignedStaffId;
+    void privacy;
+    const location = rest.location as Record<string, unknown> | undefined;
+    if (location?.geo) {
+      const { geo, ...locationRest } = location;
+      void geo;
+      rest.location = locationRest;
+    }
+    return rest;
   }
 
   async updateOwn(

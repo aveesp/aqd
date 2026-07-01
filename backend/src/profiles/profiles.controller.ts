@@ -44,7 +44,10 @@ export class ProfilesController {
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.profilesService.findById(id);
+  getById(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.profilesService.findByIdForViewer(id, {
+      userId: user.sub,
+      role: user.role,
+    });
   }
 }
