@@ -41,6 +41,7 @@ cd frontend
 npm install
 npm start
 ```
+The frontend talks to the backend at the URL hardcoded in `frontend/src/app/core/config/api.config.ts` (no Angular environment-file setup yet) — update it if your backend isn't running on the port it currently points to.
 
 ## Roles
 `guest` · `user` · `premium` · `vip` · `support_staff` · `matchmaking_staff` · `admin` · `super_admin`

@@ -1,0 +1,47 @@
+<div class="min-h-screen flex items-center justify-center bg-emerald-50 px-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-emerald-100 p-8">
+    <h1 class="text-2xl font-semibold text-emerald-900 mb-1">Welcome back</h1>
+    <p class="text-sm text-emerald-700/70 mb-6">Sign in to AQD — Where Faith Meets Commitment</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          autocomplete="email"
+        />
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          autocomplete="current-password"
+        />
+      </div>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="submitting()"
+        class="w-full rounded-lg bg-emerald-700 text-white py-2.5 font-medium hover:bg-emerald-800 disabled:opacity-50 transition"
+      >
+        {{ submitting() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="text-sm text-gray-600 mt-6 text-center">
+      Don't have an account?
+      <a routerLink="/register" class="text-emerald-700 font-medium hover:underline">Register</a>
+    </p>
+  </div>
+</div>
