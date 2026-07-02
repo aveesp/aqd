@@ -70,6 +70,23 @@ export interface Privacy {
 
 export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 
+export interface Photo {
+  _id: string;
+  url: string;
+  filename: string;
+  isPrimary: boolean;
+  uploadedAt: string;
+}
+
+export type DocumentType = 'government_id' | 'address_proof' | 'other';
+
+export interface VerificationDocument {
+  _id: string;
+  filename: string;
+  docType: DocumentType;
+  uploadedAt: string;
+}
+
 export interface Profile {
   _id: string;
   userId: string;
@@ -84,6 +101,8 @@ export interface Profile {
   privacy?: Privacy;
   verificationStatus: VerificationStatus;
   profileCompleteness: number;
+  photos?: Photo[];
+  verificationDocuments?: VerificationDocument[];
   createdAt: string;
   updatedAt: string;
 }

@@ -194,6 +194,46 @@ export class Privacy {
 }
 const PrivacySchema = SchemaFactory.createForClass(Privacy);
 
+@Schema()
+export class Photo {
+  @Prop({ required: true })
+  url: string;
+
+  @Prop({ required: true })
+  filename: string;
+
+  @Prop({ default: false })
+  isPrimary: boolean;
+
+  @Prop({ type: Date, default: Date.now })
+  uploadedAt: Date;
+}
+const PhotoSchema = SchemaFactory.createForClass(Photo);
+
+export const DOCUMENT_TYPES = [
+  'government_id',
+  'address_proof',
+  'other',
+] as const;
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+
+// Never exposed outside the owner and admin-panel staff — no dedicated
+// `url` field since these are identity documents, only served through an
+// authenticated, access-checked endpoint (see ProfilesService).
+@Schema()
+export class VerificationDocument {
+  @Prop({ required: true })
+  filename: string;
+
+  @Prop({ type: String, enum: DOCUMENT_TYPES, required: true })
+  docType: DocumentType;
+
+  @Prop({ type: Date, default: Date.now })
+  uploadedAt: Date;
+}
+const VerificationDocumentSchema =
+  SchemaFactory.createForClass(VerificationDocument);
+
 @Schema({ timestamps: true })
 export class Profile {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true })
@@ -238,6 +278,12 @@ export class Profile {
 
   @Prop({ type: Number, default: 0 })
   profileCompleteness: number;
+
+  @Prop({ type: [PhotoSchema], default: [] })
+  photos: Photo[];
+
+  @Prop({ type: [VerificationDocumentSchema], default: [] })
+  verificationDocuments: VerificationDocument[];
 }
 
 export const ProfileSchema = SchemaFactory.createForClass(Profile);

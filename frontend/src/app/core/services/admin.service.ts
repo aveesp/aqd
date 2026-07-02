@@ -43,4 +43,10 @@ export class AdminService {
     const params = new HttpParams().set('page', page).set('limit', limit);
     return this.http.get<AuditLogResult>(`${API_BASE_URL}/admin/audit-logs`, { params });
   }
+
+  getVerificationDocumentBlob(profileId: string, docId: string): Observable<Blob> {
+    return this.http.get(`${API_BASE_URL}/admin/profiles/${profileId}/documents/${docId}/file`, {
+      responseType: 'blob',
+    });
+  }
 }

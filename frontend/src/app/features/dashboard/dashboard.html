@@ -58,9 +58,14 @@
     } @else if (profile(); as p) {
       <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
         <div class="flex items-start justify-between mb-6">
-          <div>
-            <h1 class="text-xl font-semibold text-gray-900">{{ p.personal.firstName }} {{ p.personal.lastName }}</h1>
-            <p class="text-sm text-gray-500">{{ p.personal.gender }} · born {{ p.personal.dob | date: 'mediumDate' }}</p>
+          <div class="flex items-center gap-4">
+            @if (primaryPhotoUrl(p); as url) {
+              <img [src]="url" class="w-16 h-16 rounded-full object-cover border border-gray-200" />
+            }
+            <div>
+              <h1 class="text-xl font-semibold text-gray-900">{{ p.personal.firstName }} {{ p.personal.lastName }}</h1>
+              <p class="text-sm text-gray-500">{{ p.personal.gender }} · born {{ p.personal.dob | date: 'mediumDate' }}</p>
+            </div>
           </div>
           <span
             class="text-xs font-medium px-2.5 py-1 rounded-full"

@@ -60,7 +60,10 @@
       @for (p of results(); track p._id) {
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
           <div class="flex items-start justify-between mb-2">
-            <a [routerLink]="['/profile', p._id]" class="font-semibold text-gray-900 hover:text-emerald-700 hover:underline">
+            <a [routerLink]="['/profile', p._id]" class="flex items-center gap-3 font-semibold text-gray-900 hover:text-emerald-700 hover:underline">
+              @if (primaryPhotoUrl(p); as url) {
+                <img [src]="url" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" />
+              }
               {{ p.personal.firstName }} {{ p.personal.lastName }}
             </a>
             <span

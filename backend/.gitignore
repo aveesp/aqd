@@ -5,6 +5,9 @@
 # local dev database data
 /.mongo-data
 
+# uploaded photos/documents (local-disk storage for dev, see StorageService)
+/uploads
+
 # env
 .env
 .env.*

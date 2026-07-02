@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProfileService } from '../../core/services/profile.service';
+import { ProfileService, photoUrl } from '../../core/services/profile.service';
 import { MatchesService } from '../../core/services/matches.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Profile } from '../../core/models/profile.model';
@@ -27,6 +27,7 @@ export class ProfileView implements OnInit {
   private readonly matchesService = inject(MatchesService);
   private readonly authService = inject(AuthService);
 
+  readonly photoUrl = photoUrl;
   readonly profile = signal<Profile | null>(null);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);

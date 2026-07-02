@@ -4,10 +4,16 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { AdminService } from '../../../core/services/admin.service';
 import { AdminNavBar } from '../../../shared/components/admin-nav-bar/admin-nav-bar';
 
+interface QueueProfileDocument {
+  _id: string;
+  docType: string;
+}
+
 interface QueueProfile {
   _id: string;
   personal: { firstName: string; lastName: string; gender: string; dob: string };
   verificationStatus: string;
+  verificationDocuments?: QueueProfileDocument[];
 }
 
 @Component({
@@ -52,6 +58,16 @@ export class AdminVerification implements OnInit {
         this.acting.update((state) => ({ ...state, [profile._id]: false }));
         this.errorMessage.set(err.error?.message ?? 'Could not record this decision.');
       },
+    });
+  }
+
+  viewDocument(profileId: string, docId: string): void {
+    this.adminService.getVerificationDocumentBlob(profileId, docId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+      error: () => this.errorMessage.set('Could not open document.'),
     });
   }
 }

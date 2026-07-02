@@ -39,6 +39,101 @@
           </form>
         </section>
 
+        <!-- Photos -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-1">Photos</h2>
+          <p class="text-sm text-gray-500 mb-4">Up to 6 photos. JPEG, PNG, or WebP, max 5MB each.</p>
+
+          @if (photoError()) {
+            <p class="text-sm text-red-600 mb-3">{{ photoError() }}</p>
+          }
+
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
+            @for (photo of profile()?.photos; track photo._id) {
+              <div class="relative group">
+                <img [src]="photoUrl(photo.url)" class="w-full aspect-square object-cover rounded-lg border border-gray-200" />
+                @if (photo.isPrimary) {
+                  <span class="absolute top-1 left-1 text-[10px] font-medium bg-emerald-700 text-white rounded-full px-2 py-0.5">Primary</span>
+                }
+                <div class="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
+                  @if (!photo.isPrimary) {
+                    <button
+                      (click)="setPrimaryPhoto(photo._id)"
+                      [disabled]="photoActionId() === photo._id"
+                      class="text-[11px] font-medium bg-white rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      Set primary
+                    </button>
+                  }
+                  <button
+                    (click)="deletePhoto(photo._id)"
+                    [disabled]="photoActionId() === photo._id"
+                    class="text-[11px] font-medium bg-white text-red-600 rounded px-2 py-1 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <label class="inline-block text-sm font-medium text-emerald-700 hover:underline cursor-pointer">
+            {{ uploadingPhoto() ? 'Uploading…' : '+ Add photos' }}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              class="hidden"
+              [disabled]="uploadingPhoto()"
+              (change)="onPhotoFilesSelected($event)"
+            />
+          </label>
+        </section>
+
+        <!-- Verification documents -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-1">Verification documents</h2>
+          <p class="text-sm text-gray-500 mb-4">
+            Upload an identity or address document for our team to verify your profile. Only you and staff can view these.
+          </p>
+
+          @if (documentError()) {
+            <p class="text-sm text-red-600 mb-3">{{ documentError() }}</p>
+          }
+
+          @if (profile()?.verificationDocuments?.length) {
+            <ul class="space-y-2 mb-4">
+              @for (doc of profile()?.verificationDocuments; track doc._id) {
+                <li class="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
+                  <span class="text-gray-700 capitalize">{{ doc.docType.replace('_', ' ') }}</span>
+                  <button (click)="viewOwnDocument(doc._id)" class="text-emerald-700 hover:underline font-medium">View</button>
+                </li>
+              }
+            </ul>
+          }
+
+          <div class="flex items-center gap-3">
+            <select
+              (change)="selectDocType($any($event.target).value)"
+              class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              @for (opt of documentTypeOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+            <label class="text-sm font-medium text-emerald-700 hover:underline cursor-pointer">
+              {{ uploadingDocument() ? 'Uploading…' : '+ Upload document' }}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                class="hidden"
+                [disabled]="uploadingDocument()"
+                (change)="onDocumentFileSelected($event)"
+              />
+            </label>
+          </div>
+        </section>
+
         <!-- Religion -->
         <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <h2 class="font-medium text-gray-900 mb-4">Religion</h2>

@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../core/services/search.service';
 import { MatchesService } from '../../core/services/matches.service';
+import { photoUrl } from '../../core/services/profile.service';
 import { Profile } from '../../core/models/profile.model';
 import { NavBar } from '../../shared/components/nav-bar/nav-bar';
 
@@ -102,5 +103,10 @@ export class Search {
       error: (err: HttpErrorResponse) =>
         this.patchAction(userId, { error: err.error?.message ?? 'Could not shortlist.' }),
     });
+  }
+
+  primaryPhotoUrl(p: Profile): string | null {
+    const primary = p.photos?.find((photo) => photo.isPrimary) ?? p.photos?.[0];
+    return primary ? photoUrl(primary.url) : null;
   }
 }

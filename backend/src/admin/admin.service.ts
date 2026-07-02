@@ -143,6 +143,13 @@ export class AdminService {
     return updated.toObject();
   }
 
+  async getVerificationDocumentFilePath(
+    profileId: string,
+    docId: string,
+  ): Promise<string> {
+    return this.profilesService.getDocumentFilePathForStaff(profileId, docId);
+  }
+
   async assignStaffToProfile(
     actorId: string,
     profileId: string,

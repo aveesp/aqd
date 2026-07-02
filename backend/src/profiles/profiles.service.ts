@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -6,14 +7,19 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
+  DocumentType,
+  Photo,
   Profile,
   ProfileDocument,
+  VerificationDocument,
   VerificationStatus,
 } from './schemas/profile.schema';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdatePrivacyDto } from './dto/update-privacy.dto';
 import { Role, ADMIN_PANEL_ROLES } from '../auth/roles.enum';
+import { StorageService } from '../storage/storage.service';
+import { MAX_PHOTOS } from './upload.constants';
 
 export interface ProfileViewer {
   userId: string;
@@ -48,6 +54,7 @@ export class ProfilesService {
   constructor(
     @InjectModel(Profile.name)
     private readonly profileModel: Model<ProfileDocument>,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(
@@ -120,21 +127,23 @@ export class ProfilesService {
 
   // Owner and admin-panel staff see the full document; every other viewer
   // gets internal fields stripped and privacy toggles enforced. `hideContact`
-  // and `hidePhotos` don't have dedicated fields to redact yet (contact info
-  // and photo galleries aren't modeled on Profile yet), so this only covers
-  // what's actually sensitive today: staff assignment, the target's own
-  // privacy settings, and precise geolocation. Public so other modules
-  // (e.g. search) can apply the same redaction to list results.
+  // doesn't have a dedicated field to redact yet (no contact info modeled on
+  // Profile yet). `verificationDocuments` are identity documents — never
+  // shown to anyone but the owner/staff, no toggle needed. Public so other
+  // modules (e.g. search) can apply the same redaction to list results.
   redactForOtherUsers(profile: ProfileDocument): Record<string, unknown> {
     const plain = profile.toObject();
-    const { assignedStaffId, privacy, ...rest } = plain;
+    const { assignedStaffId, privacy, verificationDocuments, ...rest } = plain;
     void assignedStaffId;
-    void privacy;
+    void verificationDocuments;
     const location = rest.location as Record<string, unknown> | undefined;
     if (location?.geo) {
       const { geo, ...locationRest } = location;
       void geo;
       rest.location = locationRest;
+    }
+    if (privacy?.hidePhotos) {
+      rest.photos = [];
     }
     return rest;
   }
@@ -233,6 +242,126 @@ export class ProfilesService {
 
   async listByAssignedStaff(staffUserId: string): Promise<ProfileDocument[]> {
     return this.profileModel.find({ assignedStaffId: staffUserId }).exec();
+  }
+
+  // --- Photos ---
+
+  async addPhotos(
+    userId: string,
+    files: Express.Multer.File[],
+  ): Promise<ProfileDocument> {
+    const profile = await this.findByUserId(userId);
+    const remainingSlots = MAX_PHOTOS - profile.photos.length;
+    if (remainingSlots <= 0) {
+      throw new BadRequestException(`Maximum ${MAX_PHOTOS} photos allowed`);
+    }
+    const toUpload = files.slice(0, remainingSlots);
+    const saved = await Promise.all(
+      toUpload.map((file) =>
+        this.storageService.saveFile('photos', file.buffer, file.originalname),
+      ),
+    );
+    const hasPrimary = profile.photos.some((p) => p.isPrimary);
+    saved.forEach((s, i) => {
+      profile.photos.push({
+        url: s.url,
+        filename: s.filename,
+        isPrimary: !hasPrimary && i === 0,
+        uploadedAt: new Date(),
+      });
+    });
+    await profile.save();
+    return profile;
+  }
+
+  async deletePhoto(userId: string, photoId: string): Promise<ProfileDocument> {
+    const profile = await this.findByUserId(userId);
+    const photos = profile.photos as unknown as (Photo & {
+      _id: { toString(): string };
+    })[];
+    const idx = photos.findIndex((p) => p._id.toString() === photoId);
+    if (idx === -1) {
+      throw new NotFoundException('Photo not found');
+    }
+    const [removed] = photos.splice(idx, 1);
+    await this.storageService.deleteFile('photos', removed.filename);
+    if (removed.isPrimary && photos.length > 0) {
+      photos[0].isPrimary = true;
+    }
+    profile.markModified('photos');
+    await profile.save();
+    return profile;
+  }
+
+  async setPrimaryPhoto(
+    userId: string,
+    photoId: string,
+  ): Promise<ProfileDocument> {
+    const profile = await this.findByUserId(userId);
+    const photos = profile.photos as unknown as (Photo & {
+      _id: { toString(): string };
+    })[];
+    let found = false;
+    for (const photo of photos) {
+      const match = photo._id.toString() === photoId;
+      photo.isPrimary = match;
+      if (match) found = true;
+    }
+    if (!found) {
+      throw new NotFoundException('Photo not found');
+    }
+    profile.markModified('photos');
+    await profile.save();
+    return profile;
+  }
+
+  // --- Verification documents ---
+
+  async addDocument(
+    userId: string,
+    file: Express.Multer.File,
+    docType: DocumentType,
+  ): Promise<ProfileDocument> {
+    const profile = await this.findByUserId(userId);
+    const saved = await this.storageService.saveFile(
+      'documents',
+      file.buffer,
+      file.originalname,
+    );
+    profile.verificationDocuments.push({
+      filename: saved.filename,
+      docType,
+      uploadedAt: new Date(),
+    });
+    // Submitting a new document (re-)starts the review process.
+    profile.verificationStatus = VerificationStatus.Pending;
+    await profile.save();
+    return profile;
+  }
+
+  async getOwnDocumentFilePath(userId: string, docId: string): Promise<string> {
+    const profile = await this.findByUserId(userId);
+    return this.resolveDocumentPath(profile, docId);
+  }
+
+  async getDocumentFilePathForStaff(
+    profileId: string,
+    docId: string,
+  ): Promise<string> {
+    const profile = await this.findById(profileId);
+    return this.resolveDocumentPath(profile, docId);
+  }
+
+  private resolveDocumentPath(profile: ProfileDocument, docId: string): string {
+    const docs =
+      profile.verificationDocuments as unknown as (VerificationDocument & {
+        _id: { toString(): string };
+      })[];
+    const doc = docs.find((d) => d._id.toString() === docId);
+    if (!doc) {
+      throw new NotFoundException('Document not found');
+    }
+    return this.storageService.getFilePath('documents', doc.filename);
   }
 
   private computeCompleteness(profile: Profile): number {

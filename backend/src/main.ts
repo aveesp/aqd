@@ -15,11 +15,15 @@ async function bootstrap() {
   app.use('/api/v1/payments/webhook', express.raw({ type: '*/*' }));
   app.use(express.json());
 
-  app.use(helmet());
+  // Photos are served as plain static files from a different origin/port
+  // than the Angular dev server, so the default same-origin
+  // Cross-Origin-Resource-Policy would block <img> tags from loading them.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.enableCors({
     origin: process.env.CORS_ORIGIN?.split(',') ?? 'http://localhost:4200',
     credentials: true,
   });
+  app.use('/uploads/photos', express.static('uploads/photos'));
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(
     new ValidationPipe({

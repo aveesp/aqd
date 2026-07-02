@@ -2,9 +2,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ProfileService, UpdateProfilePayload } from '../../core/services/profile.service';
-import { Profile } from '../../core/models/profile.model';
+import { ProfileService, UpdateProfilePayload, photoUrl } from '../../core/services/profile.service';
+import { DocumentType, Profile } from '../../core/models/profile.model';
 import { NavBar } from '../../shared/components/nav-bar/nav-bar';
+
+const DOCUMENT_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
+  { value: 'government_id', label: 'Government ID' },
+  { value: 'address_proof', label: 'Address proof' },
+  { value: 'other', label: 'Other' },
+];
 
 // Untouched form fields come back as '' rather than undefined; the backend's
 // per-section merge only treats `undefined` as "not provided", so a blank
@@ -32,6 +38,16 @@ export class ProfileEdit implements OnInit {
   readonly savingPrivacy = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly savedMessage = signal<string | null>(null);
+
+  readonly photoUrl = photoUrl;
+  readonly documentTypeOptions = DOCUMENT_TYPE_OPTIONS;
+  readonly profile = signal<Profile | null>(null);
+  readonly uploadingPhoto = signal(false);
+  readonly photoActionId = signal<string | null>(null);
+  readonly uploadingDocument = signal(false);
+  readonly selectedDocType = signal<DocumentType>('government_id');
+  readonly photoError = signal<string | null>(null);
+  readonly documentError = signal<string | null>(null);
 
   readonly personalForm = this.fb.nonNullable.group({
     bio: [''],
@@ -99,6 +115,7 @@ export class ProfileEdit implements OnInit {
   ngOnInit(): void {
     this.profileService.getOwn().subscribe({
       next: (profile) => {
+        this.profile.set(profile);
         this.patchForms(profile);
         this.loading.set(false);
       },
@@ -230,5 +247,89 @@ export class ProfileEdit implements OnInit {
 
   backToProfile(): void {
     void this.router.navigate(['/dashboard']);
+  }
+
+  onPhotoFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    if (files.length === 0) return;
+    this.photoError.set(null);
+    this.uploadingPhoto.set(true);
+    this.profileService.uploadPhotos(files).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.uploadingPhoto.set(false);
+        input.value = '';
+      },
+      error: (err: HttpErrorResponse) => {
+        this.uploadingPhoto.set(false);
+        this.photoError.set(err.error?.message ?? 'Could not upload photo.');
+        input.value = '';
+      },
+    });
+  }
+
+  deletePhoto(photoId: string): void {
+    this.photoActionId.set(photoId);
+    this.photoError.set(null);
+    this.profileService.deletePhoto(photoId).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.photoActionId.set(null);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.photoActionId.set(null);
+        this.photoError.set(err.error?.message ?? 'Could not delete photo.');
+      },
+    });
+  }
+
+  setPrimaryPhoto(photoId: string): void {
+    this.photoActionId.set(photoId);
+    this.photoError.set(null);
+    this.profileService.setPrimaryPhoto(photoId).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.photoActionId.set(null);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.photoActionId.set(null);
+        this.photoError.set(err.error?.message ?? 'Could not update photo.');
+      },
+    });
+  }
+
+  selectDocType(docType: DocumentType): void {
+    this.selectedDocType.set(docType);
+  }
+
+  onDocumentFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.documentError.set(null);
+    this.uploadingDocument.set(true);
+    this.profileService.uploadDocument(file, this.selectedDocType()).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.uploadingDocument.set(false);
+        input.value = '';
+      },
+      error: (err: HttpErrorResponse) => {
+        this.uploadingDocument.set(false);
+        this.documentError.set(err.error?.message ?? 'Could not upload document.');
+        input.value = '';
+      },
+    });
+  }
+
+  viewOwnDocument(docId: string): void {
+    this.profileService.getOwnDocumentBlob(docId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+      error: () => this.documentError.set('Could not open document.'),
+    });
   }
 }

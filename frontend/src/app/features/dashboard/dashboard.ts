@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ProfileService } from '../../core/services/profile.service';
+import { ProfileService, photoUrl } from '../../core/services/profile.service';
 import { Profile } from '../../core/models/profile.model';
 import { NavBar } from '../../shared/components/nav-bar/nav-bar';
 
@@ -88,5 +88,10 @@ export class Dashboard implements OnInit {
         this.errorMessage.set('Could not save your bio.');
       },
     });
+  }
+
+  primaryPhotoUrl(p: Profile): string | null {
+    const primary = p.photos?.find((photo) => photo.isPrimary) ?? p.photos?.[0];
+    return primary ? photoUrl(primary.url) : null;
   }
 }

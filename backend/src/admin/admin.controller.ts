@@ -8,8 +8,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from '../auth/auth.service';
 import { AuditService } from '../audit/audit.service';
 import { AdminService } from './admin.service';
@@ -103,6 +105,21 @@ export class AdminController {
       profileId,
       dto.decision,
     );
+  }
+
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles(Role.SupportStaff, Role.MatchmakingStaff, Role.Admin, Role.SuperAdmin)
+  @Get('profiles/:profileId/documents/:docId/file')
+  async getVerificationDocumentFile(
+    @Param('profileId') profileId: string,
+    @Param('docId') docId: string,
+    @Res() res: Response,
+  ) {
+    const filePath = await this.adminService.getVerificationDocumentFilePath(
+      profileId,
+      docId,
+    );
+    res.sendFile(filePath);
   }
 
   @UseGuards(JwtAccessGuard, RolesGuard)

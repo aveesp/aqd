@@ -20,6 +20,20 @@
             <div>
               <p class="font-medium text-gray-900">{{ p.personal.firstName }} {{ p.personal.lastName }}</p>
               <p class="text-sm text-gray-500">{{ p.personal.gender }} · born {{ p.personal.dob | date: 'mediumDate' }}</p>
+              @if (p.verificationDocuments?.length) {
+                <div class="flex gap-2 mt-1.5 flex-wrap">
+                  @for (doc of p.verificationDocuments; track doc._id) {
+                    <button
+                      (click)="viewDocument(p._id, doc._id)"
+                      class="text-xs font-medium text-emerald-700 hover:underline capitalize"
+                    >
+                      View {{ doc.docType.replace('_', ' ') }}
+                    </button>
+                  }
+                </div>
+              } @else {
+                <p class="text-xs text-amber-600 mt-1.5">No documents submitted yet</p>
+              }
             </div>
             <div class="flex gap-2">
               <button

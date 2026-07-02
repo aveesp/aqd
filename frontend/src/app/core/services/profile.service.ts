@@ -1,8 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { API_BASE_URL } from '../config/api.config';
-import { Education, Family, Lifestyle, LocationInfo, Occupation, PartnerPreferences, Personal, Privacy, Profile, ReligionInfo } from '../models/profile.model';
+import { API_BASE_URL, WS_BASE_URL } from '../config/api.config';
+import {
+  DocumentType,
+  Education,
+  Family,
+  Lifestyle,
+  LocationInfo,
+  Occupation,
+  PartnerPreferences,
+  Personal,
+  Privacy,
+  Profile,
+  ReligionInfo,
+} from '../models/profile.model';
 
 export interface CreateProfilePayload {
   personal: {
@@ -61,4 +73,35 @@ export class ProfileService {
       params: { ids: userIds.join(',') },
     });
   }
+
+  uploadPhotos(files: File[]): Observable<Profile> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    return this.http.post<Profile>(`${API_BASE_URL}/profiles/me/photos`, formData);
+  }
+
+  deletePhoto(photoId: string): Observable<Profile> {
+    return this.http.delete<Profile>(`${API_BASE_URL}/profiles/me/photos/${photoId}`);
+  }
+
+  setPrimaryPhoto(photoId: string): Observable<Profile> {
+    return this.http.patch<Profile>(`${API_BASE_URL}/profiles/me/photos/${photoId}/primary`, {});
+  }
+
+  uploadDocument(file: File, docType: DocumentType): Observable<Profile> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('docType', docType);
+    return this.http.post<Profile>(`${API_BASE_URL}/profiles/me/documents`, formData);
+  }
+
+  getOwnDocumentBlob(docId: string): Observable<Blob> {
+    return this.http.get(`${API_BASE_URL}/profiles/me/documents/${docId}/file`, { responseType: 'blob' });
+  }
+}
+
+// Photo URLs from the backend are relative (e.g. "/uploads/photos/x.jpg"),
+// served from the bare backend origin, not under /api/v1.
+export function photoUrl(relativeUrl: string): string {
+  return `${WS_BASE_URL}${relativeUrl}`;
 }
