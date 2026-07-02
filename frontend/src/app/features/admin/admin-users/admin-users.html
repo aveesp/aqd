@@ -1,0 +1,61 @@
+<div class="min-h-screen bg-gray-50">
+  <app-admin-nav-bar />
+
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Users</h1>
+    <p class="text-sm text-gray-500 mb-6">{{ total() }} total</p>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="text-gray-500">Loading…</p>
+    } @else {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-left text-gray-500">
+            <tr>
+              <th class="px-4 py-3 font-medium">Email</th>
+              <th class="px-4 py-3 font-medium">Role</th>
+              <th class="px-4 py-3 font-medium">Status</th>
+              <th class="px-4 py-3 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of users(); track u.id) {
+              <tr class="border-t border-gray-100">
+                <td class="px-4 py-3 text-gray-900">{{ u.email }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ u.role }}</td>
+                <td class="px-4 py-3">
+                  <span
+                    class="text-xs font-medium px-2 py-0.5 rounded-full"
+                    [class.bg-emerald-100]="u.status === 'active'"
+                    [class.text-emerald-800]="u.status === 'active'"
+                    [class.bg-red-100]="u.status === 'suspended'"
+                    [class.text-red-700]="u.status === 'suspended'"
+                    [class.bg-gray-100]="u.status !== 'active' && u.status !== 'suspended'"
+                    [class.text-gray-600]="u.status !== 'active' && u.status !== 'suspended'"
+                  >
+                    {{ u.status }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  @if (canChangeStatus() && (u.status === 'active' || u.status === 'suspended')) {
+                    <button
+                      (click)="toggleStatus(u)"
+                      [disabled]="acting()[u.id]"
+                      class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {{ u.status === 'suspended' ? 'Reactivate' : 'Suspend' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

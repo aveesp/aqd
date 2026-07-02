@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { adminGuard, adminGuestGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -36,6 +37,32 @@ export const routes: Routes = [
     path: 'chat',
     loadComponent: () => import('./features/chat/chat').then((m) => m.Chat),
     canActivate: [authGuard],
+  },
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./features/admin/admin-login/admin-login').then((m) => m.AdminLogin),
+    canActivate: [adminGuestGuard],
+  },
+  {
+    path: 'admin/users',
+    loadComponent: () => import('./features/admin/admin-users/admin-users').then((m) => m.AdminUsers),
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'admin/verification',
+    loadComponent: () =>
+      import('./features/admin/admin-verification/admin-verification').then((m) => m.AdminVerification),
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'admin/staff',
+    loadComponent: () => import('./features/admin/admin-staff/admin-staff').then((m) => m.AdminStaff),
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'admin/audit-log',
+    loadComponent: () => import('./features/admin/admin-audit-log/admin-audit-log').then((m) => m.AdminAuditLog),
+    canActivate: [adminGuard],
   },
   { path: '**', redirectTo: '' },
 ];

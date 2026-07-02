@@ -29,6 +29,18 @@ export class AuthService {
     );
   }
 
+  // Staff-only counterpart to login() — hits the backend's separate
+  // /admin/login, which rejects regular-user credentials the way /auth/login
+  // rejects staff credentials.
+  adminLogin(email: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${API_BASE_URL}/admin/login`, { email, password }).pipe(
+      tap((res) => {
+        this.tokenStorage.setTokens(res.accessToken, res.refreshToken);
+        this.currentUserSignal.set(res.user);
+      }),
+    );
+  }
+
   logout(): Observable<void> {
     return this.http.post<void>(`${API_BASE_URL}/auth/logout`, {}).pipe(
       catchError(() => of(undefined)),

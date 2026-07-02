@@ -1,0 +1,24 @@
+<nav class="bg-gray-900 px-6 py-4 flex items-center justify-between">
+  <div class="flex items-center gap-8">
+    <span class="text-lg font-semibold text-white">AQD Admin</span>
+    <div class="flex gap-5 text-sm font-medium">
+      <a routerLink="/admin/users" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Users</a>
+      <a routerLink="/admin/verification" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Verification</a>
+      @if (canManageStaff()) {
+        <a routerLink="/admin/staff" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Staff</a>
+      }
+      @if (canManageAudit()) {
+        <a routerLink="/admin/audit-log" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Audit log</a>
+      }
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <span class="text-sm text-gray-400">{{ authService.currentUser()?.email }} · {{ authService.currentUser()?.role }}</span>
+    <button
+      (click)="logout()"
+      class="text-sm font-medium text-gray-300 hover:text-white border border-gray-700 rounded-lg px-3 py-1.5"
+    >
+      Sign out
+    </button>
+  </div>
+</nav>

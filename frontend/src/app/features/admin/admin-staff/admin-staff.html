@@ -1,0 +1,49 @@
+<div class="min-h-screen bg-gray-50">
+  <app-admin-nav-bar />
+
+  <div class="max-w-md mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Provision a staff account</h1>
+    <p class="text-sm text-gray-500 mb-6">
+      Support staff, matchmaking staff, and admin accounts only — a new super admin can only be created with the
+      <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">seed:super-admin</code> script.
+    </p>
+
+    @if (created()) {
+      <p class="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
+        Created {{ created()!.email }} as {{ created()!.role }}.
+      </p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input formControlName="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Temporary password</label>
+        <input formControlName="password" type="password" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+        <p class="text-xs text-gray-500 mt-1">At least 8 characters. Share this with the new staff member securely.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <select formControlName="role" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          @for (r of assignableRoles; track r) {
+            <option [value]="r">{{ r }}</option>
+          }
+        </select>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="submitting()"
+        class="w-full rounded-lg bg-emerald-700 text-white py-2.5 font-medium hover:bg-emerald-800 disabled:opacity-50"
+      >
+        {{ submitting() ? 'Creating…' : 'Create staff account' }}
+      </button>
+    </form>
+  </div>
+</div>
