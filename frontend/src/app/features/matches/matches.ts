@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { MatchesService } from '../../core/services/matches.service';
 import { ProfileService } from '../../core/services/profile.service';
@@ -26,6 +27,7 @@ interface MatchRow {
 export class Matches {
   private readonly matchesService = inject(MatchesService);
   private readonly profileService = inject(ProfileService);
+  private readonly router = inject(Router);
 
   readonly activeTab = signal<Tab>('received');
   readonly rows = signal<MatchRow[]>([]);
@@ -160,5 +162,9 @@ export class Matches {
       next: () => this.loadTab('blocked'),
       error: () => this.setActing(row.entryId, false),
     });
+  }
+
+  message(row: MatchRow): void {
+    void this.router.navigate(['/chat'], { queryParams: { with: row.otherUserId } });
   }
 }
