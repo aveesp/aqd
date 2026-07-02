@@ -1,0 +1,204 @@
+<div class="min-h-screen bg-gray-50">
+  <app-admin-nav-bar />
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Content management</h1>
+    <p class="text-sm text-gray-500 mb-6">Blog posts, testimonials, FAQ, and homepage banners.</p>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    <div class="flex gap-2 mb-6">
+      @for (t of ['blog', 'testimonials', 'faq', 'banners']; track t) {
+        <button
+          (click)="selectTab($any(t))"
+          class="text-sm font-medium px-3 py-1.5 rounded-lg border capitalize"
+          [class.bg-emerald-700]="tab() === t"
+          [class.text-white]="tab() === t"
+          [class.border-emerald-700]="tab() === t"
+          [class.border-gray-300]="tab() !== t"
+          [class.text-gray-700]="tab() !== t"
+        >
+          {{ t }}
+        </button>
+      }
+    </div>
+
+    @if (tab() === 'blog') {
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 class="font-medium text-gray-900 mb-4">New blog post</h2>
+        <form [formGroup]="blogForm" (ngSubmit)="createBlogPost()" class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <input formControlName="title" placeholder="Title" class="rounded-lg border border-gray-300 px-3 py-2" />
+            <input formControlName="slug" placeholder="slug-like-this" class="rounded-lg border border-gray-300 px-3 py-2" />
+          </div>
+          <input formControlName="excerpt" placeholder="Excerpt (optional)" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          <textarea formControlName="content" rows="4" placeholder="Content" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <input formControlName="coverImageUrl" placeholder="Cover image URL (optional)" class="rounded-lg border border-gray-300 px-3 py-2" />
+            <input formControlName="tags" placeholder="tags, comma, separated" class="rounded-lg border border-gray-300 px-3 py-2" />
+          </div>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" formControlName="published" class="rounded border-gray-300" />
+            Publish immediately
+          </label>
+          <button type="submit" [disabled]="saving()" class="rounded-lg bg-emerald-700 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-800 disabled:opacity-50">
+            {{ saving() ? 'Saving…' : 'Create post' }}
+          </button>
+        </form>
+      </section>
+
+      <div class="space-y-2">
+        @for (post of blogPosts(); track post._id) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
+            <div>
+              <p class="font-medium text-gray-900">{{ post.title }}</p>
+              <p class="text-xs text-gray-500">/{{ post.slug }}</p>
+            </div>
+            <div class="flex gap-2 items-center">
+              <span
+                class="text-xs font-medium px-2 py-0.5 rounded-full"
+                [class.bg-emerald-100]="post.published"
+                [class.text-emerald-800]="post.published"
+                [class.bg-gray-100]="!post.published"
+                [class.text-gray-600]="!post.published"
+              >
+                {{ post.published ? 'published' : 'draft' }}
+              </span>
+              <button (click)="togglePublishBlogPost(post)" class="text-xs font-medium text-emerald-700 hover:underline">
+                {{ post.published ? 'Unpublish' : 'Publish' }}
+              </button>
+              <button (click)="deleteBlogPost(post._id)" class="text-xs font-medium text-red-600 hover:underline">Delete</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-sm text-gray-500">No blog posts yet.</p>
+        }
+      </div>
+    }
+
+    @if (tab() === 'testimonials') {
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 class="font-medium text-gray-900 mb-4">New testimonial</h2>
+        <form [formGroup]="testimonialForm" (ngSubmit)="createTestimonial()" class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <input formControlName="authorName" placeholder="Author name" class="rounded-lg border border-gray-300 px-3 py-2" />
+            <input formControlName="authorLocation" placeholder="Location (optional)" class="rounded-lg border border-gray-300 px-3 py-2" />
+          </div>
+          <textarea formControlName="quote" rows="2" placeholder="Quote" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <input formControlName="photoUrl" placeholder="Photo URL (optional)" class="rounded-lg border border-gray-300 px-3 py-2" />
+            <input formControlName="rating" type="number" min="1" max="5" placeholder="Rating (1-5)" class="rounded-lg border border-gray-300 px-3 py-2" />
+          </div>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" formControlName="published" class="rounded border-gray-300" />
+            Publish immediately
+          </label>
+          <button type="submit" [disabled]="saving()" class="rounded-lg bg-emerald-700 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-800 disabled:opacity-50">
+            {{ saving() ? 'Saving…' : 'Create testimonial' }}
+          </button>
+        </form>
+      </section>
+
+      <div class="space-y-2">
+        @for (item of testimonials(); track item._id) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
+            <div>
+              <p class="font-medium text-gray-900">{{ item.authorName }}</p>
+              <p class="text-sm text-gray-500 italic">"{{ item.quote }}"</p>
+            </div>
+            <div class="flex gap-2 items-center shrink-0">
+              <button (click)="togglePublishTestimonial(item)" class="text-xs font-medium text-emerald-700 hover:underline">
+                {{ item.published ? 'Unpublish' : 'Publish' }}
+              </button>
+              <button (click)="deleteTestimonial(item._id)" class="text-xs font-medium text-red-600 hover:underline">Delete</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-sm text-gray-500">No testimonials yet.</p>
+        }
+      </div>
+    }
+
+    @if (tab() === 'faq') {
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 class="font-medium text-gray-900 mb-4">New FAQ item</h2>
+        <form [formGroup]="faqForm" (ngSubmit)="createFaqItem()" class="space-y-3">
+          <input formControlName="question" placeholder="Question" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          <textarea formControlName="answer" rows="2" placeholder="Answer" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+          <input formControlName="category" placeholder="Category" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" formControlName="published" class="rounded border-gray-300" />
+            Publish immediately
+          </label>
+          <button type="submit" [disabled]="saving()" class="rounded-lg bg-emerald-700 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-800 disabled:opacity-50">
+            {{ saving() ? 'Saving…' : 'Create FAQ item' }}
+          </button>
+        </form>
+      </section>
+
+      <div class="space-y-2">
+        @for (item of faqItems(); track item._id) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
+            <div>
+              <p class="font-medium text-gray-900">{{ item.question }}</p>
+              <p class="text-xs text-gray-500">{{ item.category }}</p>
+            </div>
+            <div class="flex gap-2 items-center shrink-0">
+              <button (click)="togglePublishFaqItem(item)" class="text-xs font-medium text-emerald-700 hover:underline">
+                {{ item.published ? 'Unpublish' : 'Publish' }}
+              </button>
+              <button (click)="deleteFaqItem(item._id)" class="text-xs font-medium text-red-600 hover:underline">Delete</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-sm text-gray-500">No FAQ items yet.</p>
+        }
+      </div>
+    }
+
+    @if (tab() === 'banners') {
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 class="font-medium text-gray-900 mb-4">New banner</h2>
+        <form [formGroup]="bannerForm" (ngSubmit)="createBanner()" class="space-y-3">
+          <input formControlName="title" placeholder="Title" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          <input formControlName="imageUrl" placeholder="Image URL" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          <input formControlName="linkUrl" placeholder="Link URL (optional)" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" formControlName="active" class="rounded border-gray-300" />
+            Active
+          </label>
+          <button type="submit" [disabled]="saving()" class="rounded-lg bg-emerald-700 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-800 disabled:opacity-50">
+            {{ saving() ? 'Saving…' : 'Create banner' }}
+          </button>
+        </form>
+      </section>
+
+      <div class="space-y-2">
+        @for (banner of banners(); track banner._id) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
+            <p class="font-medium text-gray-900">{{ banner.title }}</p>
+            <div class="flex gap-2 items-center shrink-0">
+              <span
+                class="text-xs font-medium px-2 py-0.5 rounded-full"
+                [class.bg-emerald-100]="banner.active"
+                [class.text-emerald-800]="banner.active"
+                [class.bg-gray-100]="!banner.active"
+                [class.text-gray-600]="!banner.active"
+              >
+                {{ banner.active ? 'active' : 'inactive' }}
+              </span>
+              <button (click)="toggleActiveBanner(banner)" class="text-xs font-medium text-emerald-700 hover:underline">
+                {{ banner.active ? 'Deactivate' : 'Activate' }}
+              </button>
+              <button (click)="deleteBanner(banner._id)" class="text-xs font-medium text-red-600 hover:underline">Delete</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-sm text-gray-500">No banners yet.</p>
+        }
+      </div>
+    }
+  </div>
+</div>
