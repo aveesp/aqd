@@ -83,7 +83,7 @@ export class SubscriptionsService {
           startedAt: new Date(),
           currentPeriodEnd,
         },
-        { upsert: true, new: true },
+        { upsert: true, returnDocument: 'after' },
       )
       .exec();
     return sub;
