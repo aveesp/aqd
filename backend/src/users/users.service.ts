@@ -50,8 +50,46 @@ export class UsersService {
     await this.userModel
       .updateOne(
         { _id: userId },
-        { emailVerifiedAt: new Date(), status: 'active' },
+        {
+          emailVerifiedAt: new Date(),
+          status: 'active',
+          emailVerificationOtpHash: null,
+          emailVerificationOtpExpiresAt: null,
+          emailVerificationAttempts: 0,
+        },
       )
+      .exec();
+  }
+
+  async setEmailVerificationOtp(
+    userId: string,
+    otpHash: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.userModel
+      .updateOne(
+        { _id: userId },
+        {
+          emailVerificationOtpHash: otpHash,
+          emailVerificationOtpExpiresAt: expiresAt,
+          emailVerificationAttempts: 0,
+        },
+      )
+      .exec();
+  }
+
+  async findByEmailWithOtp(email: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findOne({ email: email.toLowerCase() })
+      .select(
+        '+emailVerificationOtpHash +emailVerificationOtpExpiresAt +emailVerificationAttempts',
+      )
+      .exec();
+  }
+
+  async incrementVerificationAttempts(userId: string): Promise<void> {
+    await this.userModel
+      .updateOne({ _id: userId }, { $inc: { emailVerificationAttempts: 1 } })
       .exec();
   }
 

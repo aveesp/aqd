@@ -35,6 +35,15 @@ export class User {
   @Prop({ type: Date, default: null })
   emailVerifiedAt: Date | null;
 
+  @Prop({ type: String, default: null, select: false })
+  emailVerificationOtpHash: string | null;
+
+  @Prop({ type: Date, default: null, select: false })
+  emailVerificationOtpExpiresAt: Date | null;
+
+  @Prop({ type: Number, default: 0, select: false })
+  emailVerificationAttempts: number;
+
   @Prop({ default: false })
   twoFactorEnabled: boolean;
 

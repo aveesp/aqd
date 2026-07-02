@@ -21,6 +21,7 @@ export interface AuthUser {
   email: string;
   role: Role;
   status?: string;
+  emailVerifiedAt?: string | null;
 }
 
 export interface TokenPair {

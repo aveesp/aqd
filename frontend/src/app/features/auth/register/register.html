@@ -5,7 +5,7 @@
 
     @if (success()) {
       <p class="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-        Account created. Redirecting you to sign in…
+        Account created. Redirecting you to verify your email…
       </p>
     } @else {
       <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">

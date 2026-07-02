@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { Chat, ChatDocument } from './schemas/chat.schema';
 import { Message, MessageDocument } from './schemas/message.schema';
 import { MatchesService } from '../matches/matches.service';
+import { UsersService } from '../users/users.service';
 
 export interface ConversationSummary {
   chatId: string;
@@ -23,6 +24,7 @@ export class ChatService {
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
     private readonly matchesService: MatchesService,
+    private readonly usersService: UsersService,
   ) {}
 
   async sendMessage(
@@ -32,6 +34,12 @@ export class ChatService {
   ): Promise<MessageDocument> {
     if (senderId === targetUserId) {
       throw new ForbiddenException('You cannot message yourself');
+    }
+    const sender = await this.usersService.findById(senderId);
+    if (!sender.emailVerifiedAt) {
+      throw new ForbiddenException(
+        'Please verify your email before sending messages',
+      );
     }
     await this.assertCanMessage(senderId, targetUserId);
     const chat = await this.getOrCreateChat(senderId, targetUserId);

@@ -36,7 +36,7 @@ export class Register {
       next: () => {
         this.submitting.set(false);
         this.success.set(true);
-        setTimeout(() => void this.router.navigate(['/login']), 1500);
+        setTimeout(() => void this.router.navigate(['/verify-email'], { queryParams: { email } }), 1200);
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);

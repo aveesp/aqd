@@ -17,7 +17,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json --forceExit",
+    "test:e2e": "jest --config ./test/jest-e2e.json --forceExit --runInBand",
     "seed:super-admin": "ts-node scripts/seed-super-admin.ts"
   },
   "dependencies": {
@@ -40,6 +40,7 @@
     "helmet": "^8.2.0",
     "ioredis": "^5.11.1",
     "mongoose": "^9.7.3",
+    "nodemailer": "^9.0.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "razorpay": "^2.9.6",
@@ -58,6 +59,7 @@
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.10.7",
+    "@types/nodemailer": "^8.0.1",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",

@@ -20,3 +20,18 @@
     </button>
   </div>
 </nav>
+
+@if (!authService.currentUser()?.emailVerifiedAt) {
+  <div class="bg-amber-50 border-b border-amber-200 px-6 py-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
+    <span class="text-amber-800">Please verify your email to unlock messaging and other features.</span>
+    <span>
+      @if (resent()) {
+        <span class="text-amber-700">Code sent.</span>
+      } @else {
+        <button (click)="resendVerification()" [disabled]="resending()" class="font-medium text-amber-800 hover:underline disabled:opacity-50">
+          {{ resending() ? 'Sending…' : 'Resend code' }}
+        </button>
+      }
+    </span>
+  </div>
+}

@@ -7,6 +7,7 @@ import { ChatGateway } from './chat.gateway';
 import { Chat, ChatSchema } from './schemas/chat.schema';
 import { Message, MessageSchema } from './schemas/message.schema';
 import { MatchesModule } from '../matches/matches.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MatchesModule } from '../matches/matches.module';
     ]),
     JwtModule.register({}),
     MatchesModule,
+    UsersModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway],

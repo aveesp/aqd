@@ -20,6 +20,14 @@ export class AuthService {
     return this.http.post<{ id: string; email: string }>(`${API_BASE_URL}/auth/register`, { email, password });
   }
 
+  verifyEmail(email: string, otp: string): Observable<{ verified: true }> {
+    return this.http.post<{ verified: true }>(`${API_BASE_URL}/auth/verify-email`, { email, otp });
+  }
+
+  resendVerification(email: string): Observable<{ sent: true }> {
+    return this.http.post<{ sent: true }>(`${API_BASE_URL}/auth/resend-verification`, { email });
+  }
+
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${API_BASE_URL}/auth/login`, { email, password }).pipe(
       tap((res) => {
