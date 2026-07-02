@@ -49,6 +49,11 @@ export class User {
 
   @Prop({ type: Date, default: null })
   lastActiveAt: Date | null;
+
+  // Populated by { timestamps: true } below; declared here only so TS knows
+  // about them (no @Prop — Mongoose adds these automatically).
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

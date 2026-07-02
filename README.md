@@ -30,6 +30,11 @@ npm install
 npm run start:dev
 ```
 
+First run: there's no self-service way to create a `super_admin` (staff accounts are provisioned from the Admin Panel, and even `super_admin` can't create another `super_admin` via the API — see [docs/04-ROADMAP.md](docs/04-ROADMAP.md)). Bootstrap one with:
+```bash
+npm run seed:super-admin -- "you@example.com" "a-strong-password"
+```
+
 ### Frontend
 ```bash
 cd frontend
@@ -40,4 +45,4 @@ npm start
 ## Roles
 `guest` · `user` · `premium` · `vip` · `support_staff` · `matchmaking_staff` · `admin` · `super_admin`
 
-Regular users authenticate at `/auth/login`. All internal staff (support, matchmaking, admin, super admin) authenticate at a single `/admin/login`, differentiated by RBAC — not by separate apps or portals.
+Regular users authenticate at `/auth/login`; that endpoint rejects staff credentials. All internal staff (support, matchmaking, admin, super admin) authenticate at `/admin/login`, which conversely rejects regular-user credentials. Both are backend routes on the same NestJS API — there is no separate Angular app/portal for staff, just a distinct login route with stricter RBAC.

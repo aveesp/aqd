@@ -5,7 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Profile, ProfileDocument } from './schemas/profile.schema';
+import {
+  Profile,
+  ProfileDocument,
+  VerificationStatus,
+} from './schemas/profile.schema';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdatePrivacyDto } from './dto/update-privacy.dto';
@@ -157,6 +161,51 @@ export class ProfilesService {
       ...existing.toObject(),
       ...withoutUndefined(dto as unknown as Record<string, unknown>),
     });
+    await profile.save();
+    return profile;
+  }
+
+  async listByVerificationStatus(
+    status: VerificationStatus,
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    profiles: ProfileDocument[];
+    page: number;
+    limit: number;
+    total: number;
+  }> {
+    const filter = { verificationStatus: status };
+    const skip = (page - 1) * limit;
+    const [profiles, total] = await Promise.all([
+      this.profileModel
+        .find(filter)
+        .sort({ createdAt: 1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.profileModel.countDocuments(filter).exec(),
+    ]);
+    return { profiles, page, limit, total };
+  }
+
+  async setVerificationStatus(
+    id: string,
+    status: VerificationStatus,
+  ): Promise<ProfileDocument> {
+    const profile = await this.findById(id);
+    profile.verificationStatus = status;
+    await profile.save();
+    return profile;
+  }
+
+  async assignStaff(
+    id: string,
+    staffUserId: string | null,
+  ): Promise<ProfileDocument> {
+    const profile = await this.findById(id);
+    profile.assignedStaffId =
+      staffUserId as unknown as ProfileDocument['assignedStaffId'];
     await profile.save();
     return profile;
   }

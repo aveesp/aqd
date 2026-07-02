@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { User, UserDocument, UserStatus } from './schemas/user.schema';
 import { Role } from '../auth/roles.enum';
 
 @Injectable()
@@ -63,5 +63,35 @@ export class UsersService {
 
   async findByIdWithRefreshHash(userId: string): Promise<UserDocument | null> {
     return this.userModel.findById(userId).select('+refreshTokenHash').exec();
+  }
+
+  async list(
+    filter: { role?: Role; status?: UserStatus } = {},
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    users: UserDocument[];
+    page: number;
+    limit: number;
+    total: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+      this.userModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.userModel.countDocuments(filter).exec(),
+    ]);
+    return { users, page, limit, total };
+  }
+
+  async setStatus(userId: string, status: UserStatus): Promise<UserDocument> {
+    const user = await this.findById(userId);
+    user.status = status;
+    await user.save();
+    return user;
   }
 }

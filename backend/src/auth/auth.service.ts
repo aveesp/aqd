@@ -7,8 +7,9 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { Role } from './roles.enum';
+import { Role, ADMIN_PANEL_ROLES } from './roles.enum';
 import { JwtPayload } from './jwt-payload.interface';
+import { UserDocument } from '../users/schemas/user.schema';
 
 export interface TokenPair {
   accessToken: string;
@@ -48,6 +49,34 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<TokenPair & { user: { id: string; email: string; role: Role } }> {
+    const user = await this.authenticate(email, password);
+    if (ADMIN_PANEL_ROLES.includes(user.role)) {
+      throw new UnauthorizedException(
+        'Staff accounts must sign in at /admin/login',
+      );
+    }
+    return this.completeLogin(user);
+  }
+
+  // Separate entry point for support_staff/matchmaking_staff/admin/super_admin,
+  // per the SRS's requirement for a distinct admin-panel login route (not a
+  // separate frontend app — just a distinct, more tightly rate-limited
+  // backend endpoint that rejects regular-user credentials).
+  async adminLogin(
+    email: string,
+    password: string,
+  ): Promise<TokenPair & { user: { id: string; email: string; role: Role } }> {
+    const user = await this.authenticate(email, password);
+    if (!ADMIN_PANEL_ROLES.includes(user.role)) {
+      throw new UnauthorizedException('This login is for staff accounts only');
+    }
+    return this.completeLogin(user);
+  }
+
+  private async authenticate(
+    email: string,
+    password: string,
+  ): Promise<UserDocument> {
     const user = await this.usersService.findByEmail(email, true);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -56,6 +85,12 @@ export class AuthService {
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    return user;
+  }
+
+  private async completeLogin(
+    user: UserDocument,
+  ): Promise<TokenPair & { user: { id: string; email: string; role: Role } }> {
     const tokens = await this.issueTokens({
       sub: user.id,
       email: user.email,
