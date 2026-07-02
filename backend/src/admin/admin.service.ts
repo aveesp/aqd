@@ -3,9 +3,11 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { ProfilesService } from '../profiles/profiles.service';
 import { AuditService } from '../audit/audit.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { UserStatus } from '../users/schemas/user.schema';
 import { VerificationStatus } from '../profiles/schemas/profile.schema';
 import { Role } from '../auth/roles.enum';
+import { BillingCycle, Plan } from '../subscriptions/plan-catalog';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -15,6 +17,7 @@ export class AdminService {
     private readonly usersService: UsersService,
     private readonly profilesService: ProfilesService,
     private readonly auditService: AuditService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
 
   async createStaff(
@@ -111,6 +114,31 @@ export class AdminService {
       targetId: profileId,
       before: { verificationStatus: beforeStatus },
       after: { verificationStatus: updated.verificationStatus },
+    });
+    return updated.toObject();
+  }
+
+  // Manual activation covers offline/bank-transfer payments — a common
+  // real-world fallback for a marriage-bureau business, alongside the
+  // Razorpay online checkout flow.
+  async activateSubscriptionManually(
+    actorId: string,
+    userId: string,
+    plan: Plan,
+    billingCycle: BillingCycle,
+  ) {
+    await this.usersService.findById(userId);
+    const updated = await this.subscriptionsService.activate(
+      userId,
+      plan,
+      billingCycle,
+    );
+    await this.auditService.log({
+      actorId,
+      action: 'subscription.activateManual',
+      targetType: 'user',
+      targetId: userId,
+      after: { plan: updated.plan, billingCycle: updated.billingCycle },
     });
     return updated.toObject();
   }

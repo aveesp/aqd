@@ -7,6 +7,7 @@ import { Favorite, FavoriteSchema } from './schemas/favorite.schema';
 import { Shortlist, ShortlistSchema } from './schemas/shortlist.schema';
 import { Block, BlockSchema } from './schemas/block.schema';
 import { UsersModule } from '../users/users.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UsersModule } from '../users/users.module';
       { name: Block.name, schema: BlockSchema },
     ]),
     UsersModule,
+    SubscriptionsModule,
   ],
   controllers: [MatchesController],
   providers: [MatchesService],

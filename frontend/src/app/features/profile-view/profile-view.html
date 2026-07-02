@@ -110,7 +110,12 @@
               </button>
             </div>
             @if (actionState().error) {
-              <p class="text-sm text-red-600 mt-2">{{ actionState().error }}</p>
+              <p class="text-sm text-red-600 mt-2">
+                {{ actionState().error }}
+                @if (actionState().error?.includes('Daily interest limit')) {
+                  <a routerLink="/subscription" class="underline font-medium">Upgrade plan</a>
+                }
+              </p>
             }
           }
         </div>

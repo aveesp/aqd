@@ -16,6 +16,8 @@ import { Favorite, FavoriteDocument } from './schemas/favorite.schema';
 import { Shortlist, ShortlistDocument } from './schemas/shortlist.schema';
 import { Block, BlockDocument } from './schemas/block.schema';
 import { UsersService } from '../users/users.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { PLAN_FEATURES } from '../subscriptions/plan-catalog';
 
 @Injectable()
 export class MatchesService {
@@ -28,6 +30,7 @@ export class MatchesService {
     private readonly shortlistModel: Model<ShortlistDocument>,
     @InjectModel(Block.name) private readonly blockModel: Model<BlockDocument>,
     private readonly usersService: UsersService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
 
   // --- Interests ---
@@ -39,6 +42,7 @@ export class MatchesService {
     this.assertNotSelf(fromUserId, toUserId);
     await this.usersService.findById(toUserId);
     await this.assertNotBlocked(fromUserId, toUserId);
+    await this.assertWithinDailyInterestLimit(fromUserId);
 
     const existing = await this.interestModel
       .findOne({ fromUserId, toUserId })
@@ -47,6 +51,28 @@ export class MatchesService {
       throw new ConflictException('Interest already sent to this user');
     }
     return this.interestModel.create({ fromUserId, toUserId });
+  }
+
+  // Free/Basic/Premium plans cap how many interests can be sent per day
+  // (SRS: "free-tier contact/message limits"); VIP is unlimited.
+  private async assertWithinDailyInterestLimit(
+    fromUserId: string,
+  ): Promise<void> {
+    const plan = await this.subscriptionsService.getEffectivePlan(fromUserId);
+    const limit = PLAN_FEATURES[plan].dailyInterestLimit;
+    if (limit === null) {
+      return;
+    }
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const sentToday = await this.interestModel
+      .countDocuments({ fromUserId, createdAt: { $gte: startOfToday } })
+      .exec();
+    if (sentToday >= limit) {
+      throw new ForbiddenException(
+        `Daily interest limit reached for your ${plan} plan (${limit}/day). Upgrade your subscription to send more.`,
+      );
+    }
   }
 
   async respondToInterest(

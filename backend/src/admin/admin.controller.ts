@@ -17,6 +17,7 @@ import { AdminLoginDto } from './dto/admin-login.dto';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { VerificationDecisionDto } from './dto/verification-decision.dto';
+import { ActivateSubscriptionDto } from './dto/activate-subscription.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -116,6 +117,22 @@ export class AdminController {
       actor.sub,
       profileId,
       staffUserId,
+    );
+  }
+
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles(Role.Admin, Role.SuperAdmin)
+  @Patch('subscriptions/:userId/activate')
+  activateSubscriptionManually(
+    @CurrentUser() actor: JwtPayload,
+    @Param('userId') userId: string,
+    @Body() dto: ActivateSubscriptionDto,
+  ) {
+    return this.adminService.activateSubscriptionManually(
+      actor.sub,
+      userId,
+      dto.plan,
+      dto.billingCycle,
     );
   }
 

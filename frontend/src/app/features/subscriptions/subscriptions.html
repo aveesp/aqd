@@ -1,0 +1,119 @@
+<div class="min-h-screen bg-gray-50">
+  <app-nav-bar />
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Subscription &amp; billing</h1>
+    <p class="text-sm text-gray-500 mb-6">Upgrade your plan for a higher daily interest limit and dedicated matchmaking.</p>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="text-gray-500">Loading…</p>
+    } @else {
+      @if (mySubscription(); as sub) {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-sm text-gray-500">Current plan</p>
+            <p class="text-lg font-semibold text-gray-900 capitalize">{{ sub.plan }}</p>
+            @if (sub.billingCycle) {
+              <p class="text-xs text-gray-500">{{ billingCycleLabels[sub.billingCycle] }} · renews {{ sub.currentPeriodEnd | date: 'mediumDate' }}</p>
+            }
+          </div>
+          @if (sub.plan !== 'free' && sub.autoRenew) {
+            <button
+              (click)="cancelAutoRenew()"
+              [disabled]="cancelling()"
+              class="text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-1.5 disabled:opacity-50"
+            >
+              Cancel auto-renew
+            </button>
+          }
+        </div>
+      }
+
+      @if (checkoutMessage()) {
+        <p class="text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 mb-6">{{ checkoutMessage() }}</p>
+      }
+
+      <div class="flex gap-2 mb-6">
+        @for (cycle of billingCycles; track cycle) {
+          <button
+            (click)="selectCycle(cycle)"
+            class="text-sm font-medium px-3 py-1.5 rounded-lg border"
+            [class.bg-emerald-700]="selectedCycle() === cycle"
+            [class.text-white]="selectedCycle() === cycle"
+            [class.border-emerald-700]="selectedCycle() === cycle"
+            [class.border-gray-300]="selectedCycle() !== cycle"
+            [class.text-gray-700]="selectedCycle() !== cycle"
+          >
+            {{ billingCycleLabels[cycle] }}
+          </button>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        @for (entry of plans(); track entry.plan) {
+          <div
+            class="bg-white rounded-xl shadow-sm border p-5 flex flex-col"
+            [class.border-emerald-500]="isCurrentPlan(entry.plan)"
+            [class.border-gray-200]="!isCurrentPlan(entry.plan)"
+          >
+            <p class="text-sm font-semibold text-gray-900 capitalize">{{ entry.plan }}</p>
+
+            @if (entry.pricing) {
+              <p class="text-2xl font-semibold text-gray-900 mt-2">
+                ₹{{ formatRupees(entry.pricing[selectedCycle()].amountPaise) }}
+                <span class="text-sm font-normal text-gray-500">/ {{ billingCycleLabels[selectedCycle()].toLowerCase() }}</span>
+              </p>
+            } @else {
+              <p class="text-2xl font-semibold text-gray-900 mt-2">Free</p>
+            }
+
+            <ul class="text-sm text-gray-600 mt-4 space-y-1.5 flex-1">
+              <li>
+                @if (entry.features.dailyInterestLimit === null) {
+                  Unlimited interests / day
+                } @else {
+                  {{ entry.features.dailyInterestLimit }} interests / day
+                }
+              </li>
+              @if (entry.features.dedicatedMatchmaking) {
+                <li>Dedicated matchmaking staff</li>
+              }
+            </ul>
+
+            @if (isCurrentPlan(entry.plan)) {
+              <span class="mt-4 text-xs font-medium text-emerald-800 bg-emerald-100 rounded-full px-3 py-1 text-center">Current plan</span>
+            } @else if (entry.plan !== 'free') {
+              <button
+                (click)="upgrade(entry.plan)"
+                [disabled]="checkingOut() === entry.plan"
+                class="mt-4 text-sm font-medium px-3 py-2 rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50"
+              >
+                {{ checkingOut() === entry.plan ? 'Starting checkout…' : 'Upgrade' }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">Invoices</h2>
+      @if (invoices().length === 0) {
+        <p class="text-gray-500 text-sm">No invoices yet.</p>
+      } @else {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+          @for (inv of invoices(); track inv._id) {
+            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+              <span class="font-medium text-gray-900">{{ inv.invoiceNumber }}</span>
+              <span class="text-gray-500">{{ inv.issuedAt | date: 'mediumDate' }}</span>
+              <span class="text-gray-500">GST ₹{{ formatRupees(inv.gstPaise) }}</span>
+              <span class="font-medium text-gray-900">₹{{ formatRupees(inv.totalPaise) }}</span>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

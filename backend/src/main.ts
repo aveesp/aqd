@@ -1,11 +1,19 @@
 import helmet from 'helmet';
+import * as express from 'express';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Disable Nest's automatic JSON body parsing so the Razorpay webhook route
+  // can get the raw request bytes — signature verification is computed over
+  // the exact raw body, and a re-serialized JSON.stringify of an
+  // already-parsed body would not reproduce the same bytes.
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+
+  app.use('/api/v1/payments/webhook', express.raw({ type: '*/*' }));
+  app.use(express.json());
 
   app.use(helmet());
   app.enableCors({

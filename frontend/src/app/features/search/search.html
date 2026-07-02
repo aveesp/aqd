@@ -105,7 +105,12 @@
             </button>
           </div>
           @if (actionState()[p.userId]?.error) {
-            <p class="text-xs text-red-600 mt-2">{{ actionState()[p.userId]?.error }}</p>
+            <p class="text-xs text-red-600 mt-2">
+              {{ actionState()[p.userId]?.error }}
+              @if (actionState()[p.userId]?.error?.includes('Daily interest limit')) {
+                <a routerLink="/subscription" class="underline font-medium">Upgrade plan</a>
+              }
+            </p>
           }
         </div>
       } @empty {
