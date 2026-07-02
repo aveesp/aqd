@@ -22,6 +22,7 @@ export interface AuthUser {
   role: Role;
   status?: string;
   emailVerifiedAt?: string | null;
+  twoFactorEnabled?: boolean;
 }
 
 export interface TokenPair {
@@ -31,4 +32,15 @@ export interface TokenPair {
 
 export interface LoginResponse extends TokenPair {
   user: AuthUser;
+}
+
+export interface TwoFactorRequiredResponse {
+  requiresTwoFactor: true;
+  pendingToken: string;
+}
+
+export type AdminLoginResponse = LoginResponse | TwoFactorRequiredResponse;
+
+export function isTwoFactorRequired(res: AdminLoginResponse): res is TwoFactorRequiredResponse {
+  return (res as TwoFactorRequiredResponse).requiresTwoFactor === true;
 }

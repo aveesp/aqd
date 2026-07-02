@@ -2,7 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { AuthUser, LoginResponse, TokenPair } from '../models/user.model';
+import {
+  AdminLoginResponse,
+  AuthUser,
+  LoginResponse,
+  TokenPair,
+  isTwoFactorRequired,
+} from '../models/user.model';
 import { TokenStorageService } from './token-storage.service';
 
 @Injectable({ providedIn: 'root' })
@@ -39,14 +45,42 @@ export class AuthService {
 
   // Staff-only counterpart to login() — hits the backend's separate
   // /admin/login, which rejects regular-user credentials the way /auth/login
-  // rejects staff credentials.
-  adminLogin(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API_BASE_URL}/admin/login`, { email, password }).pipe(
+  // rejects staff credentials. If the account has 2FA enabled, this
+  // resolves to a TwoFactorRequiredResponse instead of full tokens — the
+  // caller must then call verifyTwoFactorLogin() with the pendingToken.
+  adminLogin(email: string, password: string): Observable<AdminLoginResponse> {
+    return this.http.post<AdminLoginResponse>(`${API_BASE_URL}/admin/login`, { email, password }).pipe(
+      tap((res) => {
+        if (!isTwoFactorRequired(res)) {
+          this.tokenStorage.setTokens(res.accessToken, res.refreshToken);
+          this.currentUserSignal.set(res.user);
+        }
+      }),
+    );
+  }
+
+  verifyTwoFactorLogin(pendingToken: string, token: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${API_BASE_URL}/admin/login/2fa`, { pendingToken, token }).pipe(
       tap((res) => {
         this.tokenStorage.setTokens(res.accessToken, res.refreshToken);
         this.currentUserSignal.set(res.user);
       }),
     );
+  }
+
+  beginTwoFactorSetup(): Observable<{ secret: string; otpauthUrl: string; qrCodeDataUrl: string }> {
+    return this.http.post<{ secret: string; otpauthUrl: string; qrCodeDataUrl: string }>(
+      `${API_BASE_URL}/admin/2fa/setup`,
+      {},
+    );
+  }
+
+  confirmTwoFactorSetup(token: string): Observable<{ enabled: true }> {
+    return this.http.post<{ enabled: true }>(`${API_BASE_URL}/admin/2fa/confirm`, { token });
+  }
+
+  disableTwoFactor(token: string): Observable<{ enabled: false }> {
+    return this.http.post<{ enabled: false }>(`${API_BASE_URL}/admin/2fa/disable`, { token });
   }
 
   logout(): Observable<void> {

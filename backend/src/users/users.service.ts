@@ -132,4 +132,36 @@ export class UsersService {
     await user.save();
     return user;
   }
+
+  // Secret is stored as soon as setup begins but `twoFactorEnabled` stays
+  // false until the caller proves possession of the authenticator app by
+  // submitting one valid code (see AuthService.confirmTwoFactorSetup) —
+  // otherwise a setup call that's never completed would silently start
+  // requiring a code nobody has.
+  async setPendingTwoFactorSecret(
+    userId: string,
+    secret: string,
+  ): Promise<void> {
+    await this.userModel
+      .updateOne({ _id: userId }, { twoFactorSecret: secret })
+      .exec();
+  }
+
+  async setTwoFactorEnabled(userId: string, enabled: boolean): Promise<void> {
+    await this.userModel
+      .updateOne(
+        { _id: userId },
+        {
+          twoFactorEnabled: enabled,
+          ...(enabled ? {} : { twoFactorSecret: null }),
+        },
+      )
+      .exec();
+  }
+
+  async findByIdWithTwoFactorSecret(
+    userId: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel.findById(userId).select('+twoFactorSecret').exec();
+  }
 }

@@ -1,0 +1,86 @@
+<div class="min-h-screen bg-gray-50">
+  <app-admin-nav-bar />
+
+  <div class="max-w-xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Security</h1>
+    <p class="text-sm text-gray-500 mb-6">Add two-factor authentication (TOTP) to your staff account.</p>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      @if (enabled()) {
+        <p class="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
+          Two-factor authentication is enabled on your account.
+        </p>
+
+        <h2 class="font-medium text-gray-900 mb-2">Disable 2FA</h2>
+        <form [formGroup]="disableForm" (ngSubmit)="disable()" class="flex items-end gap-3">
+          <div class="flex-1">
+            <label class="block text-sm text-gray-700 mb-1">Enter a current code to confirm</label>
+            <input
+              formControlName="token"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-center tracking-[0.4em]"
+            />
+          </div>
+          <button
+            type="submit"
+            [disabled]="submitting()"
+            class="rounded-lg border border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-50 disabled:opacity-50"
+          >
+            Disable
+          </button>
+        </form>
+      } @else if (!settingUp()) {
+        <p class="text-sm text-gray-600 mb-4">Two-factor authentication is not enabled.</p>
+        <button
+          (click)="beginSetup()"
+          class="rounded-lg bg-emerald-700 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-800"
+        >
+          Set up 2FA
+        </button>
+      } @else {
+        <h2 class="font-medium text-gray-900 mb-2">Scan this QR code</h2>
+        <p class="text-sm text-gray-500 mb-4">
+          Scan with Google Authenticator, Authy, or any TOTP app, then enter the 6-digit code it shows.
+        </p>
+        @if (qrCodeDataUrl(); as qr) {
+          <img [src]="qr" alt="2FA QR code" class="w-48 h-48 mx-auto mb-4 border border-gray-200 rounded-lg" />
+        }
+        @if (secret()) {
+          <p class="text-xs text-gray-400 text-center mb-4 break-all">Manual entry key: {{ secret() }}</p>
+        }
+
+        <form [formGroup]="confirmForm" (ngSubmit)="confirmSetup()" class="space-y-3">
+          <input
+            formControlName="token"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-xl tracking-[0.5em]"
+          />
+          <div class="flex gap-2">
+            <button
+              type="submit"
+              [disabled]="submitting()"
+              class="flex-1 rounded-lg bg-emerald-700 text-white py-2.5 font-medium hover:bg-emerald-800 disabled:opacity-50"
+            >
+              {{ submitting() ? 'Verifying…' : 'Confirm & enable' }}
+            </button>
+            <button
+              type="button"
+              (click)="cancelSetup()"
+              class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

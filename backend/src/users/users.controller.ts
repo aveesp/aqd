@@ -18,6 +18,7 @@ export class UsersController {
       role: found.role,
       status: found.status,
       emailVerifiedAt: found.emailVerifiedAt,
+      twoFactorEnabled: found.twoFactorEnabled,
     };
   }
 }

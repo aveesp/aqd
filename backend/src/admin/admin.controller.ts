@@ -20,6 +20,8 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { VerificationDecisionDto } from './dto/verification-decision.dto';
 import { ActivateSubscriptionDto } from './dto/activate-subscription.dto';
+import { TwoFactorTokenDto } from './dto/two-factor-token.dto';
+import { VerifyTwoFactorLoginDto } from './dto/verify-two-factor-login.dto';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -40,6 +42,43 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: AdminLoginDto) {
     return this.authService.adminLogin(dto.email, dto.password);
+  }
+
+  @Post('login/2fa')
+  @HttpCode(HttpStatus.OK)
+  verifyTwoFactorLogin(@Body() dto: VerifyTwoFactorLoginDto) {
+    return this.authService.verifyTwoFactorLogin(dto.pendingToken, dto.token);
+  }
+
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles(Role.SupportStaff, Role.MatchmakingStaff, Role.Admin, Role.SuperAdmin)
+  @Post('2fa/setup')
+  beginTwoFactorSetup(@CurrentUser() actor: JwtPayload) {
+    return this.authService.beginTwoFactorSetup(actor.sub, actor.email);
+  }
+
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles(Role.SupportStaff, Role.MatchmakingStaff, Role.Admin, Role.SuperAdmin)
+  @Post('2fa/confirm')
+  @HttpCode(HttpStatus.OK)
+  async confirmTwoFactorSetup(
+    @CurrentUser() actor: JwtPayload,
+    @Body() dto: TwoFactorTokenDto,
+  ) {
+    await this.authService.confirmTwoFactorSetup(actor.sub, dto.token);
+    return { enabled: true };
+  }
+
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles(Role.SupportStaff, Role.MatchmakingStaff, Role.Admin, Role.SuperAdmin)
+  @Post('2fa/disable')
+  @HttpCode(HttpStatus.OK)
+  async disableTwoFactor(
+    @CurrentUser() actor: JwtPayload,
+    @Body() dto: TwoFactorTokenDto,
+  ) {
+    await this.authService.disableTwoFactor(actor.sub, dto.token);
+    return { enabled: false };
   }
 
   @UseGuards(JwtAccessGuard, RolesGuard)

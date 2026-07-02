@@ -8,6 +8,8 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomInt, randomUUID, timingSafeEqual } from 'crypto';
+import { authenticator } from 'otplib';
+import * as QRCode from 'qrcode';
 import { UsersService } from '../users/users.service';
 import { MailerService } from '../notifications/mailer.service';
 import { Role, ADMIN_PANEL_ROLES } from './roles.enum';
@@ -27,11 +29,24 @@ export interface AuthUserSummary {
   emailVerifiedAt: Date | null;
 }
 
+export interface TwoFactorRequiredResponse {
+  requiresTwoFactor: true;
+  pendingToken: string;
+}
+
+export interface TwoFactorSetupResponse {
+  secret: string;
+  otpauthUrl: string;
+  qrCodeDataUrl: string;
+}
+
 type SignOptionsExpiresIn = JwtSignOptions['expiresIn'];
 
 const BCRYPT_ROUNDS = 12;
 const OTP_EXPIRY_MINUTES = 10;
 const MAX_OTP_ATTEMPTS = 5;
+const TOTP_ISSUER = 'AQD';
+const TWO_FACTOR_PENDING_EXPIRES_IN = '5m';
 
 // bcrypt silently truncates its input at 72 bytes. Refresh tokens are JWTs
 // (150+ chars) whose header and early payload fields (sub/email/role) are
@@ -156,12 +171,90 @@ export class AuthService {
   async adminLogin(
     email: string,
     password: string,
-  ): Promise<TokenPair & { user: AuthUserSummary }> {
+  ): Promise<
+    (TokenPair & { user: AuthUserSummary }) | TwoFactorRequiredResponse
+  > {
     const user = await this.authenticate(email, password);
     if (!ADMIN_PANEL_ROLES.includes(user.role)) {
       throw new UnauthorizedException('This login is for staff accounts only');
     }
+    if (user.twoFactorEnabled) {
+      const pendingToken = await this.jwtService.signAsync(
+        { sub: user.id, purpose: 'admin-2fa-pending' },
+        {
+          secret:
+            this.config.get<string>('JWT_ACCESS_SECRET') ?? 'dev-access-secret',
+          expiresIn: TWO_FACTOR_PENDING_EXPIRES_IN,
+        },
+      );
+      return { requiresTwoFactor: true, pendingToken };
+    }
     return this.completeLogin(user);
+  }
+
+  async verifyTwoFactorLogin(
+    pendingToken: string,
+    totpToken: string,
+  ): Promise<TokenPair & { user: AuthUserSummary }> {
+    let payload: { sub: string; purpose: string };
+    try {
+      payload = await this.jwtService.verifyAsync(pendingToken, {
+        secret:
+          this.config.get<string>('JWT_ACCESS_SECRET') ?? 'dev-access-secret',
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired session');
+    }
+    if (payload.purpose !== 'admin-2fa-pending') {
+      throw new UnauthorizedException('Invalid or expired session');
+    }
+    const user = await this.usersService.findByIdWithTwoFactorSecret(
+      payload.sub,
+    );
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      throw new UnauthorizedException('Invalid or expired session');
+    }
+    if (
+      !authenticator.verify({ token: totpToken, secret: user.twoFactorSecret })
+    ) {
+      throw new UnauthorizedException('Invalid authentication code');
+    }
+    return this.completeLogin(user);
+  }
+
+  async beginTwoFactorSetup(
+    userId: string,
+    email: string,
+  ): Promise<TwoFactorSetupResponse> {
+    const secret = authenticator.generateSecret();
+    await this.usersService.setPendingTwoFactorSecret(userId, secret);
+    const otpauthUrl = authenticator.keyuri(email, TOTP_ISSUER, secret);
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+    return { secret, otpauthUrl, qrCodeDataUrl };
+  }
+
+  async confirmTwoFactorSetup(userId: string, token: string): Promise<void> {
+    const user = await this.usersService.findByIdWithTwoFactorSecret(userId);
+    if (!user?.twoFactorSecret) {
+      throw new UnauthorizedException('No pending 2FA setup for this account');
+    }
+    if (!authenticator.verify({ token, secret: user.twoFactorSecret })) {
+      throw new UnauthorizedException('Invalid authentication code');
+    }
+    await this.usersService.setTwoFactorEnabled(userId, true);
+  }
+
+  async disableTwoFactor(userId: string, token: string): Promise<void> {
+    const user = await this.usersService.findByIdWithTwoFactorSecret(userId);
+    if (!user?.twoFactorEnabled || !user.twoFactorSecret) {
+      throw new UnauthorizedException(
+        'Two-factor authentication is not enabled',
+      );
+    }
+    if (!authenticator.verify({ token, secret: user.twoFactorSecret })) {
+      throw new UnauthorizedException('Invalid authentication code');
+    }
+    await this.usersService.setTwoFactorEnabled(userId, false);
   }
 
   private async authenticate(
