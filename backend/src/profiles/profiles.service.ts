@@ -231,6 +231,10 @@ export class ProfilesService {
     return profile;
   }
 
+  async listByAssignedStaff(staffUserId: string): Promise<ProfileDocument[]> {
+    return this.profileModel.find({ assignedStaffId: staffUserId }).exec();
+  }
+
   private computeCompleteness(profile: Profile): number {
     const filledSections = COMPLETENESS_SECTIONS.filter((section) => {
       const value = profile[section] as Record<string, unknown> | undefined;

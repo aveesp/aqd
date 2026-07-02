@@ -20,6 +20,11 @@ export class AdminNavBar {
 
   readonly canManageStaff = computed(() => this.authService.currentUser()?.role === Role.SuperAdmin);
 
+  readonly canDoMatchmaking = computed(() => {
+    const role = this.authService.currentUser()?.role;
+    return role === Role.MatchmakingStaff || role === Role.Admin || role === Role.SuperAdmin;
+  });
+
   logout(): void {
     this.authService.logout().subscribe(() => void this.router.navigate(['/admin/login']));
   }

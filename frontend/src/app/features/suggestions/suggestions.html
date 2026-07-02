@@ -1,0 +1,70 @@
+<div class="min-h-screen bg-gray-50">
+  <app-nav-bar />
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Matchmaker suggestions</h1>
+    <p class="text-sm text-gray-500 mb-6">Profiles curated for you by your matchmaking team.</p>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="text-gray-500">Loading…</p>
+    } @else if (suggestions().length === 0) {
+      <p class="text-gray-500">No suggestions yet.</p>
+    } @else {
+      <div class="space-y-3">
+        @for (s of suggestions(); track s._id) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <a [routerLink]="['/profile', s.suggestedProfile._id]" class="font-medium text-gray-900 hover:text-emerald-700 hover:underline">
+                  {{ s.suggestedProfile.personal.firstName }} {{ s.suggestedProfile.personal.lastName }}
+                </a>
+                <p class="text-sm text-gray-500">
+                  {{ s.suggestedProfile.personal.gender }}
+                  @if (s.suggestedProfile.location?.city) {, {{ s.suggestedProfile.location?.city }}}
+                </p>
+                @if (s.note) {
+                  <p class="text-sm text-gray-600 mt-2 italic">"{{ s.note }}"</p>
+                }
+                <p class="text-xs text-gray-400 mt-1">Suggested {{ s.createdAt | date: 'mediumDate' }}</p>
+              </div>
+              <span
+                class="text-xs font-medium px-2 py-0.5 rounded-full"
+                [class.bg-emerald-100]="s.status === 'accepted'"
+                [class.text-emerald-800]="s.status === 'accepted'"
+                [class.bg-red-100]="s.status === 'declined'"
+                [class.text-red-700]="s.status === 'declined'"
+                [class.bg-gray-100]="s.status !== 'accepted' && s.status !== 'declined'"
+                [class.text-gray-600]="s.status !== 'accepted' && s.status !== 'declined'"
+              >
+                {{ s.status }}
+              </span>
+            </div>
+
+            @if (s.status === 'suggested' || s.status === 'viewed') {
+              <div class="flex gap-2 mt-3">
+                <button
+                  (click)="respond(s, 'accepted')"
+                  [disabled]="acting()[s._id]"
+                  class="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50"
+                >
+                  Accept
+                </button>
+                <button
+                  (click)="respond(s, 'declined')"
+                  [disabled]="acting()[s._id]"
+                  class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Decline
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

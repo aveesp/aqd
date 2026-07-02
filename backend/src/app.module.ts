@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { SearchModule } from './search/search.module';
 import { MatchesModule } from './matches/matches.module';
+import { MatchmakingModule } from './matchmaking/matchmaking.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ChatModule } from './chat/chat.module';
@@ -33,6 +34,7 @@ import { AuditModule } from './audit/audit.module';
     ProfilesModule,
     SearchModule,
     MatchesModule,
+    MatchmakingModule,
     SubscriptionsModule,
     PaymentsModule,
     ChatModule,

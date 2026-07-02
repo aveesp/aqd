@@ -1,0 +1,118 @@
+<div class="min-h-screen bg-gray-50">
+  <app-admin-nav-bar />
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Matchmaking</h1>
+    <p class="text-sm text-gray-500 mb-6">Clients assigned to you, and profiles you've suggested to them.</p>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    <div class="flex gap-6">
+      <!-- Client list -->
+      <div class="w-64 shrink-0">
+        <h2 class="text-sm font-medium text-gray-700 mb-2">My clients</h2>
+        @if (loadingClients()) {
+          <p class="text-sm text-gray-500">Loading…</p>
+        } @else if (clients().length === 0) {
+          <p class="text-sm text-gray-500">No clients assigned to you yet. An admin assigns clients from the Verification/Users pages.</p>
+        } @else {
+          <div class="space-y-1">
+            @for (c of clients(); track c._id) {
+              <button
+                (click)="selectClient(c)"
+                class="w-full text-left px-3 py-2 rounded-lg text-sm"
+                [class.bg-emerald-50]="selectedClient()?._id === c._id"
+                [class.text-emerald-800]="selectedClient()?._id === c._id"
+                [class.text-gray-700]="selectedClient()?._id !== c._id"
+                [class.hover:bg-gray-100]="selectedClient()?._id !== c._id"
+              >
+                {{ c.personal.firstName }} {{ c.personal.lastName }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Selected client detail -->
+      <div class="flex-1">
+        @if (!selectedClient()) {
+          <p class="text-gray-400">Select a client to view or suggest matches.</p>
+        } @else {
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 class="font-medium text-gray-900 mb-3">Suggest a match for {{ selectedClient()!.personal.firstName }}</h2>
+            <form [formGroup]="suggestForm" class="space-y-3">
+              <div class="flex gap-2">
+                <input
+                  formControlName="candidateProfileId"
+                  placeholder="Candidate profile ID"
+                  class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  (click)="previewCandidate()"
+                  class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Preview
+                </button>
+              </div>
+              @if (previewError()) {
+                <p class="text-sm text-red-600">{{ previewError() }}</p>
+              }
+              @if (previewedCandidate(); as cand) {
+                <div class="bg-gray-50 rounded-lg p-3 text-sm">
+                  <span class="font-medium text-gray-900">{{ cand.personal.firstName }} {{ cand.personal.lastName }}</span>
+                  <span class="text-gray-500"> — {{ cand.personal.gender }}, born {{ cand.personal.dob | date: 'mediumDate' }}</span>
+                </div>
+              }
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Note for the client (optional)</label>
+                <textarea formControlName="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+              </div>
+              <button
+                type="button"
+                (click)="submitSuggestion()"
+                [disabled]="!previewedCandidate() || submitting()"
+                class="text-sm font-medium px-4 py-2 rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50"
+              >
+                {{ submitting() ? 'Suggesting…' : 'Suggest this match' }}
+              </button>
+            </form>
+          </div>
+
+          <h2 class="text-sm font-medium text-gray-700 mb-2">Suggestions sent</h2>
+          @if (loadingSuggestions()) {
+            <p class="text-sm text-gray-500">Loading…</p>
+          } @else if (clientSuggestions().length === 0) {
+            <p class="text-sm text-gray-500">No suggestions sent to this client yet.</p>
+          } @else {
+            <div class="space-y-2">
+              @for (s of clientSuggestions(); track s._id) {
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
+                  <div>
+                    <p class="font-medium text-gray-900">{{ s.suggestedProfile.personal.firstName }} {{ s.suggestedProfile.personal.lastName }}</p>
+                    @if (s.note) {
+                      <p class="text-sm text-gray-500 italic">"{{ s.note }}"</p>
+                    }
+                  </div>
+                  <span
+                    class="text-xs font-medium px-2 py-0.5 rounded-full"
+                    [class.bg-emerald-100]="s.status === 'accepted'"
+                    [class.text-emerald-800]="s.status === 'accepted'"
+                    [class.bg-red-100]="s.status === 'declined'"
+                    [class.text-red-700]="s.status === 'declined'"
+                    [class.bg-gray-100]="s.status !== 'accepted' && s.status !== 'declined'"
+                    [class.text-gray-600]="s.status !== 'accepted' && s.status !== 'declined'"
+                  >
+                    {{ s.status }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</div>

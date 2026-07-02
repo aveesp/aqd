@@ -1,9 +1,12 @@
-<nav class="bg-gray-900 px-6 py-4 flex items-center justify-between">
-  <div class="flex items-center gap-8">
+<nav class="bg-gray-900 px-6 py-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+  <div class="flex flex-wrap items-center gap-x-8 gap-y-2">
     <span class="text-lg font-semibold text-white">AQD Admin</span>
-    <div class="flex gap-5 text-sm font-medium">
+    <div class="flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium">
       <a routerLink="/admin/users" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Users</a>
       <a routerLink="/admin/verification" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Verification</a>
+      @if (canDoMatchmaking()) {
+        <a routerLink="/admin/matchmaking" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Matchmaking</a>
+      }
       @if (canManageStaff()) {
         <a routerLink="/admin/staff" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Staff</a>
       }
@@ -12,7 +15,7 @@
       }
     </div>
   </div>
-  <div class="flex items-center gap-4">
+  <div class="flex flex-wrap items-center gap-4">
     <span class="text-sm text-gray-400">{{ authService.currentUser()?.email }} · {{ authService.currentUser()?.role }}</span>
     <button
       (click)="logout()"

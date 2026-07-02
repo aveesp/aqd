@@ -49,6 +49,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'suggestions',
+    loadComponent: () => import('./features/suggestions/suggestions').then((m) => m.Suggestions),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'admin/matchmaking',
+    loadComponent: () => import('./features/admin/admin-matchmaking/admin-matchmaking').then((m) => m.AdminMatchmaking),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'admin/login',
     loadComponent: () => import('./features/admin/admin-login/admin-login').then((m) => m.AdminLogin),
     canActivate: [adminGuestGuard],
