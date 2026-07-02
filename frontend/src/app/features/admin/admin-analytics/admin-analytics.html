@@ -1,0 +1,87 @@
+<div class="min-h-screen bg-gray-50">
+  <app-admin-nav-bar />
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-1">Analytics</h1>
+    <p class="text-sm text-gray-500 mb-6">Revenue, active users, registrations, matches, and subscriptions.</p>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="text-gray-500">Loading…</p>
+    } @else if (summary(); as s) {
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <p class="text-xs text-gray-500 mb-1">Total revenue</p>
+          <p class="text-2xl font-semibold text-gray-900">₹{{ formatRupees(s.totalRevenuePaise) }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <p class="text-xs text-gray-500 mb-1">Total users</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ s.totalUsers }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <p class="text-xs text-gray-500 mb-1">Active (30d)</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ s.activeUsersLast30Days }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <p class="text-xs text-gray-500 mb-1">New (7d)</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ s.newRegistrations7Days }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <p class="text-xs text-gray-500 mb-1">New (30d)</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ s.newRegistrations30Days }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <p class="text-xs text-gray-500 mb-1">Premium conversion</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ s.premiumConversionRatePercent }}%</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <p class="text-xs text-gray-500 mb-1">Successful matches</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ s.successfulMatches }}</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 class="font-medium text-gray-900 mb-4">Subscription breakdown</h2>
+        <div class="flex gap-6 flex-wrap">
+          @for (row of s.subscriptionBreakdown; track row.plan) {
+            <div>
+              <p class="text-lg font-semibold text-gray-900 capitalize">{{ row.count }}</p>
+              <p class="text-xs text-gray-500 capitalize">{{ row.plan }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">New registrations (30d)</h2>
+          <div class="flex items-end gap-0.5 h-32">
+            @for (row of registrations(); track row.date) {
+              <div
+                class="flex-1 bg-emerald-500 rounded-t"
+                [style.height.%]="registrationBarHeight(row.count) || 2"
+                [title]="row.date + ': ' + row.count"
+              ></div>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">Revenue (30d)</h2>
+          <div class="flex items-end gap-0.5 h-32">
+            @for (row of revenue(); track row.date) {
+              <div
+                class="flex-1 bg-emerald-500 rounded-t"
+                [style.height.%]="revenueBarHeight(row.revenuePaise) || 2"
+                [title]="row.date + ': ₹' + formatRupees(row.revenuePaise)"
+              ></div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

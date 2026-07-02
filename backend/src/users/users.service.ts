@@ -99,6 +99,26 @@ export class UsersService {
       .exec();
   }
 
+  // Called on every authenticated request (see JwtAccessStrategy) to power
+  // the "active users" analytics metric. Throttled to at most once per 5
+  // minutes per user via the query filter, so a busy user doesn't cause a
+  // write on every single API call.
+  async touchLastActive(userId: string): Promise<void> {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    await this.userModel
+      .updateOne(
+        {
+          _id: userId,
+          $or: [
+            { lastActiveAt: null },
+            { lastActiveAt: { $lt: fiveMinutesAgo } },
+          ],
+        },
+        { lastActiveAt: new Date() },
+      )
+      .exec();
+  }
+
   async findByIdWithRefreshHash(userId: string): Promise<UserDocument | null> {
     return this.userModel.findById(userId).select('+refreshTokenHash').exec();
   }

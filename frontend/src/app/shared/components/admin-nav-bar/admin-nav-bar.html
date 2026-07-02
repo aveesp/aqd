@@ -16,6 +16,9 @@
       @if (canManageAudit()) {
         <a routerLink="/admin/cms" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Content</a>
       }
+      @if (canManageAudit()) {
+        <a routerLink="/admin/analytics" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Analytics</a>
+      }
       <a routerLink="/admin/security" routerLinkActive="text-white" class="text-gray-400 hover:text-white">Security</a>
     </div>
   </div>

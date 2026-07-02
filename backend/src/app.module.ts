@@ -17,6 +17,7 @@ import { AdminModule } from './admin/admin.module';
 import { CmsModule } from './cms/cms.module';
 import { LocationsModule } from './locations/locations.module';
 import { AuditModule } from './audit/audit.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AuditModule } from './audit/audit.module';
     CmsModule,
     LocationsModule,
     AuditModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

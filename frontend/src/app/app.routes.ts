@@ -104,5 +104,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/admin-cms/admin-cms').then((m) => m.AdminCms),
     canActivate: [adminGuard],
   },
+  {
+    path: 'admin/analytics',
+    loadComponent: () => import('./features/admin/admin-analytics/admin-analytics').then((m) => m.AdminAnalytics),
+    canActivate: [adminGuard],
+  },
   { path: '**', redirectTo: '' },
 ];
