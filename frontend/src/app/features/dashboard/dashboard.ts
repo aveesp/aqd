@@ -2,13 +2,14 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ProfileService } from '../../core/services/profile.service';
 import { Profile } from '../../core/models/profile.model';
 import { NavBar } from '../../shared/components/nav-bar/nav-bar';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ReactiveFormsModule, DatePipe, NavBar],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink, NavBar],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { SearchService } from '../../core/services/search.service';
 import { MatchesService } from '../../core/services/matches.service';
 import { Profile } from '../../core/models/profile.model';
@@ -16,7 +17,7 @@ interface ActionState {
 
 @Component({
   selector: 'app-search',
-  imports: [ReactiveFormsModule, DatePipe, NavBar],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink, NavBar],
   templateUrl: './search.html',
   styleUrl: './search.scss',
 })

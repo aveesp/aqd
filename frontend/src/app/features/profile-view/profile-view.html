@@ -1,0 +1,120 @@
+<div class="min-h-screen bg-gray-50">
+  <app-nav-bar />
+
+  <div class="max-w-2xl mx-auto px-6 py-10">
+    @if (loading()) {
+      <p class="text-gray-500">Loading…</p>
+    } @else if (errorMessage()) {
+      <p class="text-red-600">{{ errorMessage() }}</p>
+    } @else if (profile(); as p) {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <h1 class="text-xl font-semibold text-gray-900">{{ p.personal.firstName }} {{ p.personal.lastName }}</h1>
+            <p class="text-sm text-gray-500">
+              {{ p.personal.gender }} · born {{ p.personal.dob | date: 'mediumDate' }}
+              @if (p.personal.heightCm) { · {{ p.personal.heightCm }}cm }
+            </p>
+          </div>
+          <span
+            class="text-xs font-medium px-2.5 py-1 rounded-full"
+            [class.bg-emerald-100]="p.verificationStatus === 'verified'"
+            [class.text-emerald-800]="p.verificationStatus === 'verified'"
+            [class.bg-gray-100]="p.verificationStatus !== 'verified'"
+            [class.text-gray-600]="p.verificationStatus !== 'verified'"
+          >
+            {{ p.verificationStatus }}
+          </span>
+        </div>
+
+        @if (p.personal.maritalStatus) {
+          <p class="text-sm text-gray-500 mb-4">{{ p.personal.maritalStatus }}</p>
+        }
+
+        @if (p.personal.bio) {
+          <p class="text-sm text-gray-700 mb-6">{{ p.personal.bio }}</p>
+        }
+
+        <div class="grid grid-cols-2 gap-6 text-sm border-t border-gray-100 pt-6">
+          @if (p.religion?.sect || p.religion?.maslak || p.religion?.prayerStatus) {
+            <div>
+              <h3 class="font-medium text-gray-900 mb-1">Religion</h3>
+              @if (p.religion?.sect) { <p class="text-gray-600">Sect: {{ p.religion?.sect }}</p> }
+              @if (p.religion?.maslak) { <p class="text-gray-600">Maslak: {{ p.religion?.maslak }}</p> }
+              @if (p.religion?.prayerStatus) { <p class="text-gray-600">Prayer: {{ p.religion?.prayerStatus }}</p> }
+            </div>
+          }
+          @if (p.location?.city || p.location?.state || p.location?.country) {
+            <div>
+              <h3 class="font-medium text-gray-900 mb-1">Location</h3>
+              <p class="text-gray-600">
+                {{ p.location?.city }}{{ p.location?.city && p.location?.state ? ', ' : '' }}{{ p.location?.state }}
+              </p>
+            </div>
+          }
+          @if (p.education?.level || p.education?.field) {
+            <div>
+              <h3 class="font-medium text-gray-900 mb-1">Education</h3>
+              @if (p.education?.level) { <p class="text-gray-600">{{ p.education?.level }}</p> }
+              @if (p.education?.field) { <p class="text-gray-600">{{ p.education?.field }}</p> }
+            </div>
+          }
+          @if (p.occupation?.title || p.occupation?.industry) {
+            <div>
+              <h3 class="font-medium text-gray-900 mb-1">Occupation</h3>
+              @if (p.occupation?.title) { <p class="text-gray-600">{{ p.occupation?.title }}</p> }
+              @if (p.occupation?.industry) { <p class="text-gray-600">{{ p.occupation?.industry }}</p> }
+            </div>
+          }
+          @if (p.family?.familyType || p.family?.familyValues) {
+            <div>
+              <h3 class="font-medium text-gray-900 mb-1">Family</h3>
+              @if (p.family?.familyType) { <p class="text-gray-600">{{ p.family?.familyType }}</p> }
+              @if (p.family?.familyValues) { <p class="text-gray-600">{{ p.family?.familyValues }}</p> }
+            </div>
+          }
+          @if (p.lifestyle?.diet || p.lifestyle?.smoking) {
+            <div>
+              <h3 class="font-medium text-gray-900 mb-1">Lifestyle</h3>
+              @if (p.lifestyle?.diet) { <p class="text-gray-600">Diet: {{ p.lifestyle?.diet }}</p> }
+              @if (p.lifestyle?.smoking) { <p class="text-gray-600">Smoking: {{ p.lifestyle?.smoking }}</p> }
+            </div>
+          }
+        </div>
+
+        <div class="border-t border-gray-100 pt-6 mt-6">
+          @if (isOwnProfile()) {
+            <a routerLink="/profile/edit" class="text-sm text-emerald-700 hover:underline">This is your profile — edit it</a>
+          } @else {
+            <div class="flex gap-2 flex-wrap">
+              <button
+                (click)="expressInterest()"
+                [disabled]="actionState().interestSent"
+                class="text-sm font-medium px-4 py-2 rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50"
+              >
+                {{ actionState().interestSent ? 'Interest sent' : 'Express interest' }}
+              </button>
+              <button
+                (click)="addFavorite()"
+                [disabled]="actionState().favorited"
+                class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {{ actionState().favorited ? 'Favorited' : 'Favorite' }}
+              </button>
+              <button
+                (click)="addToShortlist()"
+                [disabled]="actionState().shortlisted"
+                class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {{ actionState().shortlisted ? 'Shortlisted' : 'Shortlist' }}
+              </button>
+            </div>
+            @if (actionState().error) {
+              <p class="text-sm text-red-600 mt-2">{{ actionState().error }}</p>
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

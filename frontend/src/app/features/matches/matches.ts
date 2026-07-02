@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { MatchesService } from '../../core/services/matches.service';
 import { ProfileService } from '../../core/services/profile.service';
@@ -20,7 +20,7 @@ interface MatchRow {
 
 @Component({
   selector: 'app-matches',
-  imports: [NavBar],
+  imports: [RouterLink, NavBar],
   templateUrl: './matches.html',
   styleUrl: './matches.scss',
 })

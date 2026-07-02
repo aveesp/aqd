@@ -33,7 +33,9 @@
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
             <div>
               @if (row.profile) {
-                <p class="font-medium text-gray-900">{{ row.profile.personal.firstName }} {{ row.profile.personal.lastName }}</p>
+                <a [routerLink]="['/profile', row.profile._id]" class="font-medium text-gray-900 hover:text-emerald-700 hover:underline">
+                  {{ row.profile.personal.firstName }} {{ row.profile.personal.lastName }}
+                </a>
                 <p class="text-sm text-gray-500">{{ row.profile.personal.gender }}@if (row.profile.location?.city) {, {{ row.profile.location?.city }}}</p>
               } @else {
                 <p class="font-medium text-gray-400 italic">Profile unavailable</p>

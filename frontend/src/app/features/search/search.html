@@ -60,7 +60,9 @@
       @for (p of results(); track p._id) {
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
           <div class="flex items-start justify-between mb-2">
-            <h2 class="font-semibold text-gray-900">{{ p.personal.firstName }} {{ p.personal.lastName }}</h2>
+            <a [routerLink]="['/profile', p._id]" class="font-semibold text-gray-900 hover:text-emerald-700 hover:underline">
+              {{ p.personal.firstName }} {{ p.personal.lastName }}
+            </a>
             <span
               class="text-xs font-medium px-2 py-0.5 rounded-full"
               [class.bg-emerald-100]="p.verificationStatus === 'verified'"

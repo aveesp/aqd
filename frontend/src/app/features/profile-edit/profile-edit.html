@@ -1,0 +1,245 @@
+<div class="min-h-screen bg-gray-50">
+  <app-nav-bar />
+
+  <div class="max-w-2xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-semibold text-gray-900">Edit profile</h1>
+      <button (click)="backToProfile()" class="text-sm text-emerald-700 hover:underline">Back to profile</button>
+    </div>
+
+    @if (loading()) {
+      <p class="text-gray-500">Loading…</p>
+    } @else {
+      @if (savedMessage()) {
+        <p class="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">{{ savedMessage() }}</p>
+      }
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mb-4">{{ errorMessage() }}</p>
+      }
+
+      <div class="space-y-6">
+        <!-- About you -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">About you</h2>
+          <form [formGroup]="personalForm" class="space-y-3">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Bio</label>
+              <textarea formControlName="bio" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Marital status</label>
+                <input formControlName="maritalStatus" placeholder="e.g. never married" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Height (cm)</label>
+                <input formControlName="heightCm" type="number" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <!-- Religion -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">Religion</h2>
+          <form [formGroup]="religionForm" class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Sect</label>
+              <input formControlName="sect" placeholder="e.g. Sunni" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Maslak</label>
+              <input formControlName="maslak" placeholder="e.g. Hanafi" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Prayer status</label>
+              <input formControlName="prayerStatus" placeholder="e.g. Regular" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+          </form>
+        </section>
+
+        <!-- Location -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">Location</h2>
+          <form [formGroup]="locationForm" class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Country</label>
+              <input formControlName="country" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">State</label>
+              <input formControlName="state" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">City</label>
+              <input formControlName="city" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Area</label>
+              <input formControlName="area" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Pincode</label>
+              <input formControlName="pincode" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+          </form>
+        </section>
+
+        <!-- Education & Occupation -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">Education & occupation</h2>
+          <form [formGroup]="educationForm" class="grid grid-cols-3 gap-3 mb-4">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Education level</label>
+              <input formControlName="level" placeholder="e.g. Masters" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Field</label>
+              <input formControlName="field" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Institution</label>
+              <input formControlName="institution" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+          </form>
+          <form [formGroup]="occupationForm" class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Job title</label>
+              <input formControlName="title" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Industry</label>
+              <input formControlName="industry" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Income band</label>
+              <input formControlName="incomeBand" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+          </form>
+        </section>
+
+        <!-- Family -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">Family</h2>
+          <form [formGroup]="familyForm" class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Father's occupation</label>
+              <input formControlName="fatherOccupation" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Mother's occupation</label>
+              <input formControlName="motherOccupation" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Siblings</label>
+              <input formControlName="siblings" type="number" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Family type</label>
+              <input formControlName="familyType" placeholder="e.g. Nuclear" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm text-gray-700 mb-1">Family values</label>
+              <input formControlName="familyValues" placeholder="e.g. Moderate, Religious" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+          </form>
+        </section>
+
+        <!-- Lifestyle -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">Lifestyle</h2>
+          <form [formGroup]="lifestyleForm" class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Diet</label>
+              <input formControlName="diet" placeholder="e.g. Halal only" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Smoking</label>
+              <input formControlName="smoking" placeholder="e.g. Never" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+          </form>
+        </section>
+
+        <!-- Partner preferences -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-4">Partner preferences</h2>
+          <form [formGroup]="partnerPreferencesForm" class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-3 col-span-2">
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Age min</label>
+                <input formControlName="ageMin" type="number" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Age max</label>
+                <input formControlName="ageMax" type="number" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Height min (cm)</label>
+                <input formControlName="heightMin" type="number" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-700 mb-1">Height max (cm)</label>
+                <input formControlName="heightMax" type="number" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Sect</label>
+              <input formControlName="sect" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Maslak</label>
+              <input formControlName="maslak" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Location</label>
+              <input formControlName="location" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Education</label>
+              <input formControlName="education" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm text-gray-700 mb-1">Income</label>
+              <input formControlName="income" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </div>
+          </form>
+        </section>
+
+        <button
+          (click)="saveProfile()"
+          [disabled]="saving()"
+          class="w-full rounded-lg bg-emerald-700 text-white py-2.5 font-medium hover:bg-emerald-800 disabled:opacity-50"
+        >
+          {{ saving() ? 'Saving…' : 'Save profile' }}
+        </button>
+
+        <!-- Privacy -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <h2 class="font-medium text-gray-900 mb-1">Privacy</h2>
+          <p class="text-sm text-gray-500 mb-4">Control what other members can see about you.</p>
+          <form [formGroup]="privacyForm" class="space-y-3">
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" formControlName="hidePhotos" class="rounded border-gray-300" />
+              Hide my photos from other members
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" formControlName="hideContact" class="rounded border-gray-300" />
+              Hide my contact details
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" formControlName="hideLastActive" class="rounded border-gray-300" />
+              Hide my last-active status
+            </label>
+          </form>
+          <button
+            (click)="savePrivacy()"
+            [disabled]="savingPrivacy()"
+            class="mt-4 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {{ savingPrivacy() ? 'Saving…' : 'Save privacy settings' }}
+          </button>
+        </section>
+      </div>
+    }
+  </div>
+</div>
