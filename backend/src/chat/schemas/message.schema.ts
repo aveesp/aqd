@@ -3,6 +3,32 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type MessageDocument = HydratedDocument<Message>;
 
+export const ATTACHMENT_KINDS = ['image', 'voice', 'document'] as const;
+export type AttachmentKind = (typeof ATTACHMENT_KINDS)[number];
+
+// No public `url` — attachments are private between the two chat
+// participants, served only through an authenticated, participancy-checked
+// endpoint (see ChatController/ChatService), same reasoning as
+// verification documents on Profile.
+@Schema({ _id: false })
+export class Attachment {
+  @Prop({ required: true })
+  filename: string;
+
+  @Prop({ required: true })
+  originalName: string;
+
+  @Prop({ type: String, enum: ATTACHMENT_KINDS, required: true })
+  kind: AttachmentKind;
+
+  @Prop({ required: true })
+  mimeType: string;
+
+  @Prop({ required: true })
+  sizeBytes: number;
+}
+const AttachmentSchema = SchemaFactory.createForClass(Attachment);
+
 @Schema({ timestamps: true })
 export class Message {
   @Prop({ type: Types.ObjectId, ref: 'Chat', required: true })
@@ -11,10 +37,15 @@ export class Message {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   senderId: Types.ObjectId;
 
-  // Only text is supported for now — image/voice/document attachments need
-  // S3 upload, which isn't wired up yet.
-  @Prop({ required: true, trim: true, maxlength: 5000 })
-  content: string;
+  // Optional when an attachment carries the message instead (e.g. a photo
+  // sent with no caption) — enforced in ChatService, not here, since "at
+  // least one of content/attachment" isn't expressible as a single-field
+  // schema constraint.
+  @Prop({ trim: true, maxlength: 5000 })
+  content?: string;
+
+  @Prop({ type: AttachmentSchema, default: null })
+  attachment: Attachment | null;
 
   @Prop({ type: Date, default: null })
   readAt: Date | null;

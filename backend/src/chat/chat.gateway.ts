@@ -14,6 +14,7 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { MatchesService } from '../matches/matches.service';
 import { JwtPayload } from '../auth/jwt-payload.interface';
+import type { MessageDocument } from './schemas/message.schema';
 
 function userRoom(userId: string): string {
   return `user:${userId}`;
@@ -88,17 +89,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         body.targetUserId,
         body.content,
       );
-      const payload = {
-        _id: message.id,
-        chatId: message.chatId,
-        senderId: message.senderId,
-        content: message.content,
-        createdAt: message.createdAt,
-      };
-      this.server
-        .to(userRoom(user.sub))
-        .to(userRoom(body.targetUserId))
-        .emit('newMessage', payload);
+      this.broadcastMessage(user.sub, body.targetUserId, message);
       return { ok: true };
     } catch (err) {
       return {
@@ -122,6 +113,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server
       .to(userRoom(body.targetUserId))
       .emit('typing', { fromUserId: user.sub });
+  }
+
+  // Shared by the socket 'sendMessage' handler and the REST attachment
+  // upload endpoint (file uploads don't fit the socket message protocol,
+  // but both paths need to deliver the same real-time event).
+  broadcastMessage(
+    senderId: string,
+    targetUserId: string,
+    message: MessageDocument,
+  ): void {
+    const payload = {
+      _id: message.id,
+      chatId: message.chatId,
+      senderId: message.senderId,
+      content: message.content,
+      attachment: message.attachment,
+      createdAt: message.createdAt,
+    };
+    this.server
+      .to(userRoom(senderId))
+      .to(userRoom(targetUserId))
+      .emit('newMessage', payload);
   }
 
   private extractToken(client: Socket): string | null {

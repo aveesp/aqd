@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -6,9 +7,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Chat, ChatDocument } from './schemas/chat.schema';
-import { Message, MessageDocument } from './schemas/message.schema';
+import { Attachment, Message, MessageDocument } from './schemas/message.schema';
 import { MatchesService } from '../matches/matches.service';
 import { UsersService } from '../users/users.service';
+import { StorageService } from '../storage/storage.service';
+import { kindForMimeType } from './upload.constants';
 
 export interface ConversationSummary {
   chatId: string;
@@ -16,6 +19,8 @@ export interface ConversationSummary {
   lastMessageAt: Date | null;
   unreadCount: number;
 }
+
+const ATTACHMENT_SUBDIR = 'chat-attachments';
 
 @Injectable()
 export class ChatService {
@@ -25,6 +30,7 @@ export class ChatService {
     private readonly messageModel: Model<MessageDocument>,
     private readonly matchesService: MatchesService,
     private readonly usersService: UsersService,
+    private readonly storageService: StorageService,
   ) {}
 
   async sendMessage(
@@ -32,6 +38,70 @@ export class ChatService {
     targetUserId: string,
     content: string,
   ): Promise<MessageDocument> {
+    const chat = await this.prepareSend(senderId, targetUserId);
+    const message = await this.messageModel.create({
+      chatId: chat._id,
+      senderId,
+      content,
+    });
+    chat.lastMessageAt = message.createdAt as unknown as Date;
+    await chat.save();
+    return message;
+  }
+
+  async sendAttachment(
+    senderId: string,
+    targetUserId: string,
+    file: Express.Multer.File,
+    caption?: string,
+  ): Promise<MessageDocument> {
+    const kind = kindForMimeType(file.mimetype);
+    if (!kind) {
+      throw new BadRequestException('Unsupported attachment type');
+    }
+    const chat = await this.prepareSend(senderId, targetUserId);
+    const saved = await this.storageService.saveFile(
+      ATTACHMENT_SUBDIR,
+      file.buffer,
+      file.originalname,
+    );
+    const attachment: Attachment = {
+      filename: saved.filename,
+      originalName: file.originalname,
+      kind,
+      mimeType: file.mimetype,
+      sizeBytes: file.size,
+    };
+    const message = await this.messageModel.create({
+      chatId: chat._id,
+      senderId,
+      content: caption,
+      attachment,
+    });
+    chat.lastMessageAt = message.createdAt as unknown as Date;
+    await chat.save();
+    return message;
+  }
+
+  async getAttachmentFilePath(
+    userId: string,
+    messageId: string,
+  ): Promise<string> {
+    const message = await this.messageModel.findById(messageId).exec();
+    if (!message || !message.attachment) {
+      throw new NotFoundException('Attachment not found');
+    }
+    await this.getChatForParticipant(userId, message.chatId.toString());
+    return this.storageService.getFilePath(
+      ATTACHMENT_SUBDIR,
+      message.attachment.filename,
+    );
+  }
+
+  private async prepareSend(
+    senderId: string,
+    targetUserId: string,
+  ): Promise<ChatDocument> {
     if (senderId === targetUserId) {
       throw new ForbiddenException('You cannot message yourself');
     }
@@ -42,16 +112,7 @@ export class ChatService {
       );
     }
     await this.assertCanMessage(senderId, targetUserId);
-    const chat = await this.getOrCreateChat(senderId, targetUserId);
-
-    const message = await this.messageModel.create({
-      chatId: chat._id,
-      senderId,
-      content,
-    });
-    chat.lastMessageAt = message.createdAt as unknown as Date;
-    await chat.save();
-    return message;
+    return this.getOrCreateChat(senderId, targetUserId);
   }
 
   async listConversations(userId: string): Promise<ConversationSummary[]> {

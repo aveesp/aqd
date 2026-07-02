@@ -5,11 +5,22 @@ export interface ConversationSummary {
   unreadCount: number;
 }
 
+export type AttachmentKind = 'image' | 'voice' | 'document';
+
+export interface Attachment {
+  filename: string;
+  originalName: string;
+  kind: AttachmentKind;
+  mimeType: string;
+  sizeBytes: number;
+}
+
 export interface ChatMessage {
   _id: string;
   chatId: string;
   senderId: string;
-  content: string;
+  content?: string;
+  attachment?: Attachment | null;
   readAt: string | null;
   createdAt: string;
 }

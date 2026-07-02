@@ -38,6 +38,7 @@ export class Chat implements OnInit {
   readonly loadingMessages = signal(false);
   readonly draft = signal('');
   readonly sending = signal(false);
+  readonly uploadingAttachment = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly otherIsTyping = signal(false);
 
@@ -159,5 +160,40 @@ export class Chat implements OnInit {
 
   isMine(message: ChatMessage): boolean {
     return message.senderId === this.currentUserId();
+  }
+
+  onAttachmentSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    const otherUserId = this.selectedOtherUserId();
+    if (!file || !otherUserId) return;
+
+    this.uploadingAttachment.set(true);
+    this.chatService.sendAttachment(otherUserId, file).subscribe({
+      next: (message) => {
+        this.uploadingAttachment.set(false);
+        input.value = '';
+        this.selectedChatId.set(message.chatId);
+        if (!this.messages().some((m) => m._id === message._id)) {
+          this.messages.update((msgs) => [...msgs, message]);
+        }
+        this.loadConversations();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.uploadingAttachment.set(false);
+        input.value = '';
+        this.errorMessage.set(err.error?.message ?? 'Could not send attachment.');
+      },
+    });
+  }
+
+  viewAttachment(message: ChatMessage): void {
+    this.chatService.getAttachmentBlob(message._id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+      error: () => this.errorMessage.set('Could not open attachment.'),
+    });
   }
 }
