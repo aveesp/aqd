@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { Profile } from '../models/profile.model';
 
@@ -35,5 +35,14 @@ export class ProfileService {
 
   update(payload: UpdateProfilePayload): Observable<Profile> {
     return this.http.patch<Profile>(`${API_BASE_URL}/profiles/me`, payload);
+  }
+
+  getByUserIds(userIds: string[]): Observable<Profile[]> {
+    if (userIds.length === 0) {
+      return of([]);
+    }
+    return this.http.get<Profile[]>(`${API_BASE_URL}/profiles/by-users`, {
+      params: { ids: userIds.join(',') },
+    });
   }
 }

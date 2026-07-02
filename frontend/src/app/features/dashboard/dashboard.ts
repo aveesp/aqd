@@ -2,22 +2,19 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { Profile } from '../../core/models/profile.model';
+import { NavBar } from '../../shared/components/nav-bar/nav-bar';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, NavBar],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard implements OnInit {
-  readonly authService = inject(AuthService);
   private readonly profileService = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
 
   readonly profile = signal<Profile | null>(null);
   readonly loading = signal(true);
@@ -90,9 +87,5 @@ export class Dashboard implements OnInit {
         this.errorMessage.set('Could not save your bio.');
       },
     });
-  }
-
-  logout(): void {
-    this.authService.logout().subscribe(() => void this.router.navigate(['/login']));
   }
 }

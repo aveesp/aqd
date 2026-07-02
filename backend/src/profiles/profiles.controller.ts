@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
@@ -41,6 +42,20 @@ export class ProfilesController {
     @Body() dto: UpdatePrivacyDto,
   ) {
     return this.profilesService.updatePrivacy(user.sub, dto);
+  }
+
+  // Must come before the :id route below, otherwise "by-users" would be
+  // matched as a profile ID.
+  @Get('by-users')
+  getByUserIds(@Query('ids') ids: string, @CurrentUser() user: JwtPayload) {
+    const userIds = (ids ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+    return this.profilesService.findByUserIdsForViewer(userIds, {
+      userId: user.sub,
+      role: user.role,
+    });
   }
 
   @Get(':id')

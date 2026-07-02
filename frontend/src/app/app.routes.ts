@@ -22,5 +22,15 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
     canActivate: [authGuard],
   },
+  {
+    path: 'search',
+    loadComponent: () => import('./features/search/search').then((m) => m.Search),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'matches',
+    loadComponent: () => import('./features/matches/matches').then((m) => m.Matches),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: '' },
 ];

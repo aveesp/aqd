@@ -1,0 +1,116 @@
+<div class="min-h-screen bg-gray-50">
+  <app-nav-bar />
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-6">Search profiles</h1>
+
+    <form [formGroup]="filterForm" (ngSubmit)="runSearch()" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Gender</label>
+          <select formControlName="gender" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <option value="">Any</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Age min</label>
+          <input type="number" formControlName="ageMin" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Age max</label>
+          <input type="number" formControlName="ageMax" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">City</label>
+          <input formControlName="city" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Sect</label>
+          <input formControlName="sect" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Maslak</label>
+          <input formControlName="maslak" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" />
+        </div>
+        <div class="flex items-end gap-2">
+          <input id="verifiedOnly" type="checkbox" formControlName="verifiedOnly" class="rounded border-gray-300" />
+          <label for="verifiedOnly" class="text-sm text-gray-700">Verified only</label>
+        </div>
+      </div>
+      <button
+        type="submit"
+        [disabled]="loading()"
+        class="rounded-lg bg-emerald-700 text-white px-5 py-2 text-sm font-medium hover:bg-emerald-800 disabled:opacity-50"
+      >
+        {{ loading() ? 'Searching…' : 'Search' }}
+      </button>
+    </form>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    @if (searched() && !loading()) {
+      <p class="text-sm text-gray-500 mb-4">{{ total() }} result{{ total() === 1 ? '' : 's' }}</p>
+    }
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (p of results(); track p._id) {
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+          <div class="flex items-start justify-between mb-2">
+            <h2 class="font-semibold text-gray-900">{{ p.personal.firstName }} {{ p.personal.lastName }}</h2>
+            <span
+              class="text-xs font-medium px-2 py-0.5 rounded-full"
+              [class.bg-emerald-100]="p.verificationStatus === 'verified'"
+              [class.text-emerald-800]="p.verificationStatus === 'verified'"
+              [class.bg-gray-100]="p.verificationStatus !== 'verified'"
+              [class.text-gray-600]="p.verificationStatus !== 'verified'"
+            >
+              {{ p.verificationStatus }}
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 mb-1">{{ p.personal.gender }} · born {{ p.personal.dob | date: 'mediumDate' }}</p>
+          @if (p.location?.city) {
+            <p class="text-sm text-gray-500 mb-2">{{ p.location?.city }}</p>
+          }
+          @if (p.personal.bio) {
+            <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ p.personal.bio }}</p>
+          }
+
+          <div class="flex gap-2 flex-wrap">
+            <button
+              (click)="expressInterest(p.userId)"
+              [disabled]="actionState()[p.userId]?.interestSent"
+              class="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50"
+            >
+              {{ actionState()[p.userId]?.interestSent ? 'Interest sent' : 'Express interest' }}
+            </button>
+            <button
+              (click)="addFavorite(p.userId)"
+              [disabled]="actionState()[p.userId]?.favorited"
+              class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {{ actionState()[p.userId]?.favorited ? 'Favorited' : 'Favorite' }}
+            </button>
+            <button
+              (click)="addToShortlist(p.userId)"
+              [disabled]="actionState()[p.userId]?.shortlisted"
+              class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {{ actionState()[p.userId]?.shortlisted ? 'Shortlisted' : 'Shortlist' }}
+            </button>
+          </div>
+          @if (actionState()[p.userId]?.error) {
+            <p class="text-xs text-red-600 mt-2">{{ actionState()[p.userId]?.error }}</p>
+          }
+        </div>
+      } @empty {
+        @if (searched() && !loading()) {
+          <p class="text-gray-500 col-span-full">No profiles match your filters.</p>
+        }
+      }
+    </div>
+  </div>
+</div>

@@ -97,6 +97,27 @@ export class ProfilesService {
     return this.redactForOtherUsers(profile);
   }
 
+  // Batch lookup so match/favorite/shortlist/interest lists (which only
+  // store userId references) can resolve display names in one request
+  // instead of one round-trip per entry. Same visibility rules as
+  // findByIdForViewer, applied per-profile.
+  async findByUserIdsForViewer(
+    userIds: string[],
+    viewer: ProfileViewer,
+  ): Promise<Record<string, unknown>[]> {
+    const uniqueIds = [...new Set(userIds)];
+    const profiles = await this.profileModel
+      .find({ userId: { $in: uniqueIds } })
+      .exec();
+    const isStaff = ADMIN_PANEL_ROLES.includes(viewer.role);
+    return profiles.map((profile) => {
+      const isOwner = profile.userId.toString() === viewer.userId;
+      return isOwner || isStaff
+        ? (profile.toObject() as unknown as Record<string, unknown>)
+        : this.redactForOtherUsers(profile);
+    });
+  }
+
   // Owner and admin-panel staff see the full document; every other viewer
   // gets internal fields stripped and privacy toggles enforced. `hideContact`
   // and `hidePhotos` don't have dedicated fields to redact yet (contact info

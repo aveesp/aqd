@@ -1,0 +1,104 @@
+<div class="min-h-screen bg-gray-50">
+  <app-nav-bar />
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <h1 class="text-xl font-semibold text-gray-900 mb-6">Matches</h1>
+
+    <div class="flex gap-1 mb-6 border-b border-gray-200">
+      @for (tab of tabs; track tab.id) {
+        <button
+          (click)="selectTab(tab.id)"
+          class="px-4 py-2 text-sm font-medium border-b-2 -mb-px"
+          [class.border-emerald-700]="activeTab() === tab.id"
+          [class.text-emerald-700]="activeTab() === tab.id"
+          [class.border-transparent]="activeTab() !== tab.id"
+          [class.text-gray-500]="activeTab() !== tab.id"
+        >
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p class="text-red-600 mb-4">{{ errorMessage() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="text-gray-500">Loading…</p>
+    } @else if (rows().length === 0) {
+      <p class="text-gray-500">Nothing here yet.</p>
+    } @else {
+      <div class="space-y-3">
+        @for (row of rows(); track row.entryId) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
+            <div>
+              @if (row.profile) {
+                <p class="font-medium text-gray-900">{{ row.profile.personal.firstName }} {{ row.profile.personal.lastName }}</p>
+                <p class="text-sm text-gray-500">{{ row.profile.personal.gender }}@if (row.profile.location?.city) {, {{ row.profile.location?.city }}}</p>
+              } @else {
+                <p class="font-medium text-gray-400 italic">Profile unavailable</p>
+              }
+            </div>
+
+            <div class="flex items-center gap-2">
+              @if (activeTab() === 'received' && row.status === 'pending') {
+                <button
+                  (click)="accept(row)"
+                  [disabled]="acting()[row.entryId]"
+                  class="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50"
+                >
+                  Accept
+                </button>
+                <button
+                  (click)="decline(row)"
+                  [disabled]="acting()[row.entryId]"
+                  class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Decline
+                </button>
+              } @else if (row.status) {
+                <span
+                  class="text-xs font-medium px-2 py-0.5 rounded-full"
+                  [class.bg-emerald-100]="row.status === 'accepted'"
+                  [class.text-emerald-800]="row.status === 'accepted'"
+                  [class.bg-gray-100]="row.status !== 'accepted'"
+                  [class.text-gray-600]="row.status !== 'accepted'"
+                >
+                  {{ row.status }}
+                </span>
+              }
+
+              @if (activeTab() === 'favorites') {
+                <button
+                  (click)="removeFavorite(row)"
+                  [disabled]="acting()[row.entryId]"
+                  class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              }
+              @if (activeTab() === 'shortlist') {
+                <button
+                  (click)="removeFromShortlist(row)"
+                  [disabled]="acting()[row.entryId]"
+                  class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              }
+              @if (activeTab() === 'blocked') {
+                <button
+                  (click)="unblock(row)"
+                  [disabled]="acting()[row.entryId]"
+                  class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Unblock
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
